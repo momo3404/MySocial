@@ -10,7 +10,6 @@ Make a distributed social network!
 Contributing
 ============
 
-Send a pull request and be sure to update this file with your name.
 - Momo Al-Bachachi: albachac
 - Archi Patel: archi1
 - Triaksh Mehta: triaksh
