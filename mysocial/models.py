@@ -1,7 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
+import uuid
 
 MAX_LENGTH = 1000
+SHORT_MAX_LENGTH = 200
 
 # Create your models here.
     
@@ -17,7 +19,7 @@ class Author(models.Model):
         return self.display_name
     
 class Post(models.Model):
-    text = models.CharField(max_length=200)
+    text = models.CharField(max_length=SHORT_MAX_LENGTH)
     pub_date = models.DateTimeField("date published")
     content = models.TextField(max_length=MAX_LENGTH, null=True, blank=True)
     # foreign key to author
@@ -33,3 +35,11 @@ class Post(models.Model):
 
     def __str__(self):
         return self.text
+    
+class Node(models.Model):
+    node_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    host = models.CharField(max_length=SHORT_MAX_LENGTH, default="127.0.0.1:8000")
+    node_name = models.CharField(max_length=100, blank=True)
+    node_cred = models.CharField(max_length=100, blank=True)
+    api_url = models.URLField(max_length=SHORT_MAX_LENGTH, blank=True)
