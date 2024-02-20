@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 # Register your models here.
 admin.site.register(Post)
 admin.site.register(Author)
+admin.site.register(Node)
 
 def make_active(modeladmin, request, queryset):
     queryset.update(is_active=True)
