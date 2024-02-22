@@ -4,7 +4,7 @@ from .forms import RegisterForm
 
 # Create your views here.
 def index(request):
-    return HttpResponse("Welcome to MySocial.")
+    return render(request, 'home.html')
 
 def register(request):
     if request.method == 'POST':
