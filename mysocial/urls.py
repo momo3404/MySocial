@@ -7,4 +7,5 @@ urlpatterns = [
     path("", views.index, name="index"),
     path('register/', views.register, name="register" ),
     path('login/', LoginView.as_view(template_name='registration/login.html'), name='login'),
+    path('add_server/', views.add_server, name='add_server'),
 ]

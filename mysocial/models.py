@@ -43,3 +43,11 @@ class Node(models.Model):
     node_name = models.CharField(max_length=100, blank=True)
     node_cred = models.CharField(max_length=100, blank=True)
     api_url = models.URLField(max_length=SHORT_MAX_LENGTH, blank=True)
+    
+class RemoteServer(models.Model):
+    url = models.URLField(max_length=MAX_LENGTH)
+    username = models.CharField(max_length=100)
+    password = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.url
