@@ -1,9 +1,11 @@
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse, Http404
 from .forms import RegisterForm, RemoteServerForm
 from .models import RemoteServer
+from .models import Author
 import requests
 from requests.auth import HTTPBasicAuth
+import uuid
 
 # Create your views here.
 def index(request):
@@ -57,3 +59,13 @@ def connect_to_remote_server(remote_server_id):
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
+    
+def public_profile(request, author_id):
+    try:
+        # author_id string from URL to a UUID object
+        author_uuid = uuid.UUID(author_id)
+        author = get_object_or_404(Author, author_id=author_uuid)
+        return render(request, 'profile/public_profile.html', {'author': author})
+    except ValueError:
+        # if ID not a valid UUID
+        raise Http404("Invalid Author ID")
