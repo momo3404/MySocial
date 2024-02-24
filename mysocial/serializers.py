@@ -2,6 +2,10 @@ from rest_framework import serializers
 from .models import *
 
 class AuthorSerializer(serializers.Serializer):
+    class Meta:
+        model = Author
+        fields = ['type', 'url_id', 'author_id', 'display_name', 'host', 'github', 'profile_url', 'profile_image']
+        
     type = serializers.CharField(max_length=30)
     url_id = serializers.URLField(max_length=200)  
     author_id = serializers.UUIDField(format='hex_verbose', required=False, allow_null=True)  
@@ -33,6 +37,3 @@ class AuthorSerializer(serializers.Serializer):
         instance.save()
         return instance
     
-    class Meta:
-        model = Author
-        fields = ['type', 'url_id', 'author_id', 'display_name', 'host', 'github', 'profile_url', 'profile_image']

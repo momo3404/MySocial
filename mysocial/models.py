@@ -8,14 +8,14 @@ SHORT_MAX_LENGTH = 200
 # Create your models here.
     
 class Author(models.Model):
-    type = models.CharField(max_length=30)
+    type = models.CharField(max_length=30, null=True)
     url_id = models.URLField(max_length=MAX_LENGTH, unique=True, null=False)
     author_id = models.UUIDField(max_length=MAX_LENGTH, unique=True, null=True, blank=True)
-    display_name = models.CharField(max_length=MAX_LENGTH)
-    host = models.URLField(max_length=MAX_LENGTH)
+    display_name = models.CharField(max_length=MAX_LENGTH, null=True)
+    host = models.URLField(max_length=MAX_LENGTH, null=True)
     github = models.URLField(max_length=MAX_LENGTH, blank=True, null=True)
-    profile_url = models.URLField(max_length=MAX_LENGTH) 
-    profile_image = models.URLField(max_length=MAX_LENGTH)
+    profile_url = models.URLField(max_length=MAX_LENGTH,null=True) 
+    profile_image = models.URLField(max_length=MAX_LENGTH, null=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='author', null=True, blank=False) 
 
     def __str__(self):
