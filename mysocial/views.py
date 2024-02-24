@@ -1,9 +1,12 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from .forms import RegisterForm, RemoteServerForm
-from .models import RemoteServer
+from .models import RemoteServer, Author
 import requests
 from requests.auth import HTTPBasicAuth
+from .serializers import AuthorSerializer
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 # Create your views here.
 def index(request):
@@ -57,3 +60,10 @@ def connect_to_remote_server(remote_server_id):
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
+    
+    
+class AuthorList(APIView):
+    def get(self, request, format=None):
+        authors = Author.objects.all()
+        serializer = AuthorSerializer(authors, many=True)
+        return Response(serializer.data)
