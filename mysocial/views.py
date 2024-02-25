@@ -125,7 +125,7 @@ def public_profile(request, author_id):
     try:
         # author_id string from URL to a UUID object
         author_uuid = uuid.UUID(str(author_id))
-        author = get_object_or_404(Author, author_id=author_uuid)
+        author = get_object_or_404(Author, authorId=author_uuid)
         return render(request, 'mysocial/public_profile.html', {'author': author})
     except ValueError:
         # if ID not a valid UUID
