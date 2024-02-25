@@ -14,8 +14,6 @@ urlpatterns = [
     path('authors/<uuid:authorId>/followers/', views.FollowerList.as_view()),
     path('authors/<uuid:authorId>/followers/<uuid:follower>/', views.FollowDetail.as_view()),
     
-    
-    
+    path('profile/<uuid:author_id>/', views.public_profile, name='public_profile'),
 ]
-
 

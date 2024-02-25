@@ -1,12 +1,14 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, Http404
-from .forms import RegisterForm, RemoteServerForm
-import requests
 from requests.auth import HTTPBasicAuth
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+import requests
+import uuid
+
+from .forms import RegisterForm, RemoteServerForm
 from .models import RemoteServer, Author, Follower, FollowRequest, Post, Comment
 from .serializers import AuthorSerializer, FollowerSerializer, FollowRequestSerializer, PostSerializer, CommentSerializer
 
@@ -62,8 +64,7 @@ def connect_to_remote_server(remote_server_id):
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
-    
-    
+       
 class AuthorList(APIView):
     def get(self, request, format=None):
         authors = Author.objects.all()
@@ -119,3 +120,14 @@ class FollowDetail(APIView):
         follower_obj = self.get_object(follower)
         Follower.objects.get_or_create(author=author, follower=follower_obj)
         return Response(status=status.HTTP_201_CREATED)
+
+def public_profile(request, author_id):
+    try:
+        # author_id string from URL to a UUID object
+        author_uuid = uuid.UUID(str(author_id))
+        author = get_object_or_404(Author, author_id=author_uuid)
+        return render(request, 'mysocial/public_profile.html', {'author': author})
+    except ValueError:
+        # if ID not a valid UUID
+        raise Http404("Invalid Author ID")
+

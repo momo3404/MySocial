@@ -10,7 +10,7 @@ CONTENT = 2000
     
 class Author(models.Model):
     type = models.CharField(max_length=SHORT, null=True)
-    authorId = models.UUIDField(max_length=ID, unique=True, null=True, blank=True)
+    authorId = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     url = models.URLField(max_length=URL, unique=True, null=False)
     host = models.URLField(max_length=URL, null=True)
     displayName = models.CharField(max_length=SHORT, null=True)
@@ -40,7 +40,7 @@ class FollowRequest(models.Model):
 class Post(models.Model):
     type = models.CharField(max_length=SHORT, default="post")
     title =  models.CharField(max_length=MEDIUM, null=True)
-    postId = models.UUIDField(max_length=ID, unique=True, null=True, blank=True)
+    postId = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     url = models.URLField(max_length=URL, unique=True, null=True)
     source = models.URLField(max_length=URL, null=True)
     origin =  models.URLField(max_length=URL, null=True)
