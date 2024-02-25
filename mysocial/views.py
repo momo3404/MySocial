@@ -1,11 +1,16 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, Http404
-from .forms import RegisterForm, RemoteServerForm
-from .models import RemoteServer
-from .models import Author
-import requests
 from requests.auth import HTTPBasicAuth
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+import requests
 import uuid
+
+from .forms import RegisterForm, RemoteServerForm
+from .models import RemoteServer, Author, Follower, FollowRequest, Post, Comment
+from .serializers import AuthorSerializer, FollowerSerializer, FollowRequestSerializer, PostSerializer, CommentSerializer
 
 # Create your views here.
 def index(request):
@@ -59,13 +64,70 @@ def connect_to_remote_server(remote_server_id):
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
+       
+class AuthorList(APIView):
+    def get(self, request, format=None):
+        authors = Author.objects.all()
+        serializer = AuthorSerializer(authors, many=True)
+        return Response(serializer.data)
+
+class AuthorView(APIView):
+    def get_object(self, authorId):
+        try:
+            return Author.objects.get(authorId=authorId)
+        except Author.DoesNotExist:
+            raise Http404
+        
+    def get(self, request, authorId, format=None):
+        author = self.get_object(authorId)
+        serializer = AuthorSerializer(author)
+        return Response(serializer.data)
     
+    def put(self, request, authorId, format=None):
+        author = self.get_object(authorId)
+        serializer = AuthorSerializer(author, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class FollowerList(APIView):
+    def get(self, request, authorId=None, format=None):
+            if authorId is not None:
+                followers = Follower.objects.filter(follower__authorId=authorId)
+            else:
+                followers = Follower.objects.all()
+            serializer = FollowerSerializer(followers, many=True)
+            return Response(serializer.data)
+    
+class FollowDetail(APIView):
+    def get_object(self, authorId):
+        try:
+            return Author.objects.get(authorId=authorId)
+        except Author.DoesNotExist:
+            raise Http404
+    
+    def get(self, request, authorId, follower):
+        exists = Follower.objects.filter(author_id=authorId, follower_id=follower).exists()
+        return Response({'follows': exists})
+    
+    def delete(self, request, authorId, follower):
+        Follower.objects.filter(author_id=authorId, follower_id=follower).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    def put(self, request, authorId, follower):
+        author = self.get_object(authorId)
+        follower_obj = self.get_object(follower)
+        Follower.objects.get_or_create(author=author, follower=follower_obj)
+        return Response(status=status.HTTP_201_CREATED)
+
 def public_profile(request, author_id):
     try:
         # author_id string from URL to a UUID object
         author_uuid = uuid.UUID(str(author_id))
-        author = get_object_or_404(Author, author_id=author_uuid)
+        author = get_object_or_404(Author, authorId=author_uuid)
         return render(request, 'mysocial/public_profile.html', {'author': author})
     except ValueError:
         # if ID not a valid UUID
         raise Http404("Invalid Author ID")
+
