@@ -35,3 +35,29 @@ class AuthorSerializer(serializers.Serializer):
         instance.save()
         return instance
     
+    
+class FollowerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Follower
+        fields = ['attributes', 'follower']
+        
+
+class FollowRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FollowRequest
+        fields = ['type', 'summary', 'actor', 'object']
+        
+class PostSerializer(serializers.ModelSerializer):
+    author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all(), allow_null=True)
+
+    class Meta:
+        model = Post
+        fields = ['type', 'title', 'postId', 'url', 'source', 'origin', 'description', 'content_type', 'content', 'author', 'count', 'comments', 'published', 'visibility']
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all())
+    post = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all())
+
+    class Meta:
+        model = Comment
+        fields = ['type', 'author', 'comment', 'contentType', 'published', 'commentId', 'post']

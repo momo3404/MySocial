@@ -10,6 +10,12 @@ urlpatterns = [
     path('add_server/', views.add_server, name='add_server'),
 
     path('authors/', views.AuthorList.as_view()),
+    path('authors/<uuid:authorId>/', views.AuthorView.as_view()),
+    path('authors/<uuid:authorId>/followers/', views.FollowerList.as_view()),
+    path('authors/<uuid:authorId>/followers/<uuid:follower>/', views.FollowDetail.as_view()),
+    
+    
+    
 ]
 
 
