@@ -1,0 +1,21 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="templates/registration/login.css">
+</head>
+<body>
+    <div class="container flex">
+        <div class="facebook-page">
+          <div class="text">
+            <h1>facebook</h1>
+            <p>Connect with friends and the world </p>
+            <p> around you on Facebook.</p>
+          </div>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Login</button>
+    </form>
+</body>
+</html>
