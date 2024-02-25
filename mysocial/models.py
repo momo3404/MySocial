@@ -74,6 +74,13 @@ class Comment(models.Model):
         return self.author.displayName + " commented"
    
     
+class Comments(models.Model):
+    type = models.CharField(max_length=SHORT_LENGTH, default="comments")
+    page = models.IntegerField(null=True)
+    size = models.IntegerField(null=True)
+
+    def __str__(self):
+        return self.author.displayName + " commented"
     
 class Node(models.Model):
     node_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
