@@ -7,27 +7,27 @@
     <title>Login</title>
 </head>
 
-    <body class="h-100 gradient-form" style="background-color: #039BE5;">
+<body class="h-100 gradient-form" style="background-color: #039BE5;">
+    <div class="text-center">
+    <h4 class="mt-1 mb-5 pb-1">Welcome to MySocial</h4>
+    
+    <style>
+        .center {
+            margin: auto;
+            width: 400px;
+            border:1px solid black;
+        }
+    </style>
+    <div class="center"> 
+        <form  style="border:1px solid black" class="form-group">
+        <p>Please login to your account</p>
+        {% csrf_token %}
+        {{ form.as_p }}
         <div class="text-center">
-        <h4 class="mt-1 mb-5 pb-1">Welcome to MySocial</h4>
-        <style>
-            .center {
-                margin: auto;
-                width: 400px;
-                border:1px solid black;
-            
-            }
-            </style>
-            <body>
-            <div class="center"> 
-                <form  style="border:1px solid black" class="form-group">
-                <p>Please login to your account</p>
-                {% csrf_token %}
-                {{ form.as_p }}
-                <div class="text-center">
-                    <button class="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3" type="submit">Login</button>
-                </div>
-                </form>
-            </div>
+            <button class="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3" type="submit">Login</button>
+        </div>
+        </form>
+    </div>
+</body>
 
 </html>
