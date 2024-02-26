@@ -15,7 +15,7 @@ from .serializers import AuthorSerializer, FollowerSerializer, FollowRequestSeri
 
 # Create your views here.
 def index(request):
-    return render(request, 'home.html')
+    return render(request, 'base/home.html')
 
 def register(request):
     if request.method == 'POST':
@@ -24,10 +24,10 @@ def register(request):
             user = form.save(commit=False)
             user.is_active = False 
             user.save()
-            return render(request, 'registration/pending_approval.html')
+            return render(request, 'base/registration/pending_approval.html')
     else:
         form = RegisterForm()
-    return render(request, 'registration/register.html', {'form': form})
+    return render(request, 'base/registration/register.html', {'form': form})
 
 
 def add_server(request):
@@ -44,7 +44,7 @@ def add_server(request):
             return redirect('../')  
     else:
         form = RemoteServerForm()
-    return render(request, 'remote/add_server.html', {'form': form})
+    return render(request, 'base/remote/add_server.html', {'form': form})
 
 
 def connect_to_remote_server(remote_server_id):
@@ -127,7 +127,7 @@ def public_profile(request, author_id):
         # author_id string from URL to a UUID object
         author_uuid = uuid.UUID(str(author_id))
         author = get_object_or_404(Author, authorId=author_uuid)
-        return render(request, 'mysocial/public_profile.html', {'author': author})
+        return render(request, 'base/mysocial/public_profile.html', {'author': author})
     except ValueError:
         # if ID not a valid UUID
         raise Http404("Invalid Author ID")
