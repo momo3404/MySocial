@@ -4,12 +4,13 @@ from requests.auth import HTTPBasicAuth
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 
 import requests
 import uuid
 
 from .forms import RegisterForm, RemoteServerForm
-from .models import RemoteServer, Author, Follower, FollowRequest, Post, Comment
+from .models import RemoteServer, Author, Follower, FollowRequest, Post, Comment, Node
 from .serializers import AuthorSerializer, FollowerSerializer, FollowRequestSerializer, PostSerializer, CommentSerializer
 
 # Create your views here.
@@ -130,4 +131,52 @@ def public_profile(request, author_id):
     except ValueError:
         # if ID not a valid UUID
         raise Http404("Invalid Author ID")
+    
+    
+class NodeInfoAPIView(APIView):
+    def get(self, request, node_name):
+        try:
+            # Retrieve the node based on the node_name
+            node = Node.objects.get(node_name=node_name)
+            # Retrieve information about the node
+            data = {
+                'node_id': node.node_id,
+                'host': node.host,
+                'node_name': node.node_name,
+                'node_cred': node.node_cred,
+                'api_url' : node.api_url,
+                # Add other node information as needed
+            }
+            return Response(data)
+        except Node.DoesNotExist:
+            return Response({'error': 'Node not found'}, status=404)
+        
+class NodeConnection(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, node_name):
+        # Your existing logic to retrieve node information
+        try:
+            print(request.user.username)
+            print(node_name)
+            sender_node = Node.objects.get(node_name=request.user.username)
+            receiver_node = Node.objects.get(node_name=node_name)
+            data = {
+                'sender_node_id': sender_node.node_id,
+                'sender_host': sender_node.host,
+                'sender_node_name': sender_node.node_name,
+                'sender_node_cred': sender_node.node_cred,
+                'sender_api_url' : sender_node.api_url,
+                
+                'receiver_node_id': receiver_node.node_id,
+                'receiver_host': receiver_node.host,
+                'receiver_node_name': receiver_node.node_name,
+                'receiver_node_cred': receiver_node.node_cred,
+                'receiver_api_url' : receiver_node.api_url, 
+            }
+            return Response(data)
+        except Node.DoesNotExist:
+            return Response({'error': 'Node not found'}, status=status.HTTP_404_NOT_FOUND)
+    
 
