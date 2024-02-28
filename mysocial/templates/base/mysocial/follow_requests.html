@@ -1,15 +1,24 @@
-{% for request in follow_requests %}
-    <div>
-        <p>{{ request.actor.displayName }} wants to follow you.</p>
-        <form  method="post">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-success">Approve</button>
-        </form>
-        <form  method="post">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger">Reject</button>
-        </form>
-    </div>
-{% empty %}
-    <p>You have no follow requests.</p>
-{% endfor %}
+<html>
+<head>
+    <title>GitHub Activity</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+
+<body class="h-100 gradient-form" style="background-color: #039BE5; margin-top: 50px; margin-left: 20px;"></body>
+    {% for request in follow_requests %}
+        <div>
+            <p>{{ request.actor.displayName }} wants to follow you.</p>
+            <form  method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success">Approve</button>
+            </form>
+            <form  method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Reject</button>
+            </form>
+        </div>
+    {% empty %}
+        <p>You have no follow requests.</p>
+    {% endfor %}
+</body>
+</html>
