@@ -17,6 +17,8 @@ urlpatterns = [
     path('authors/<uuid:authorId>/followers/<uuid:follower>/', views.FollowDetail.as_view()),
     
     path('profile/<uuid:author_id>/', views.public_profile, name='public_profile'),
+
+    path('authors/<uuid:authorId>/posts/', views.PostListCreateView.as_view(), name='posts_by_author'),
     path('profile/<uuid:author_id>/edit_display_name/', views.edit_display_name, name='edit_display_name'),
     path('profile/<uuid:author_id>/follow/', views.follow, name='follow'),
     path('profile/<uuid:author_id>/unfollow/', views.unfollow, name='unfollow'),

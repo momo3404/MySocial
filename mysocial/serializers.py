@@ -52,8 +52,31 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['type', 'title', 'postId', 'url', 'source', 'origin', 'description', 'content_type', 'content', 'author', 'count', 'comments', 'published', 'visibility']
-
+        fields = ['type', 'postId' ,'title', 'url', 'source', 'origin', 'description', 'content_type', 'content', 'author', 'published', 'visibility']
+    def create(self, validated_data):
+        """
+        Create and return a new `Post` instance, given the validated data.
+        """
+        return Post.objects.create(**validated_data)
+    
+    def update(self, instance, validated_data):
+        """
+        Update and return an existing `Post` instance, given the validated data.
+        """
+        instance.type = validated_data.get('type', instance.type)
+        instance.title = validated_data.get('title', instance.title)
+        instance.url = validated_data.get('url', instance.url)
+        instance.source = validated_data.get('source', instance.source)
+        instance.origin = validated_data.get('origin', instance.origin)
+        instance.description = validated_data.get('description', instance.description)
+        instance.content_type = validated_data.get('content_type', instance.content_type)
+        instance.content = validated_data.get('content', instance.content)
+        instance.author = validated_data.get('author', instance.author)
+        instance.published = validated_data.get('published', instance.published)
+        instance.visibility = validated_data.get('visibility', instance.visibility)
+        
+        instance.save()
+        return instance
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all())
     post = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all())
