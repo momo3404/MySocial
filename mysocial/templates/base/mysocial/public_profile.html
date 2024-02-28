@@ -6,13 +6,22 @@
         .edit-profile-btn {
             float: right; /* Align the button to the right */
         }
+
+        .center {
+            margin: auto;
+            width: 400px;
+        }
     </style>
 </head>
 
 <body class="h-100 gradient-form" style="background-color: #039BE5;">
-    <h1>{{ author.displayName }}</h1>
-    <p>Profile URL: {{ author.url }}</p>
+    <div class="text-center">
+        <div class="center"> 
+        <h1>{{ author.displayName }}</h1>
+        <a href="url" style="color:blueviolet;">Profile URL: {{ author.url }} </a>
+        </div>
     
-    <a href="{% url 'mysocial:edit_display_name' author.authorId %}" class="btn btn-primary edit-profile-btn">Edit Profile</a>
+    <a href="{% url 'mysocial:edit_display_name' author.authorId %}" class="btn btn-primary">Edit Profile</a>
+    </div>
 </body>
 </html>
