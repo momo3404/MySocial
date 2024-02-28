@@ -1,10 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, Http404
 from requests.auth import HTTPBasicAuth
-from rest_framework import status
+from rest_framework import status, generics
+from rest_framework.generics import RetrieveUpdateAPIView
+from django.views import View
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+from django.urls import reverse
 
 import requests
 import uuid
@@ -178,5 +181,44 @@ class NodeConnection(APIView):
             return Response(data)
         except Node.DoesNotExist:
             return Response({'error': 'Node not found'}, status=status.HTTP_404_NOT_FOUND)
-    
 
+class PostListCreateView(View):
+    template_name = 'base/mysocial/stream_posts.html'
+
+    def get(self, request, authorId):
+        posts = Post.objects.all().order_by('-published')
+        author = get_object_or_404(Author, authorId=authorId)
+        context = {
+            'posts': posts,
+            'author': author,
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request, authorId):
+        post_id = request.POST.get('post_id')
+        title = request.POST.get('title')
+        content = request.POST.get('content')
+        author = get_object_or_404(Author, authorId=authorId)
+
+        if post_id:
+            # Update existing post
+            post = get_object_or_404(Post, pk=post_id)
+            post.title = title
+            post.content = content
+            post.save()
+        else:
+            # Create new post
+            if title and content:
+                Post.objects.create(title=title, content=content, author=author)
+            else:
+                # Handle missing title or content for new post scenario
+                posts = Post.objects.all().order_by('-published')
+                context = {
+                    'posts': posts,
+                    'author': author,
+                    'error_message': 'Please fill out all the information required',
+                }
+                return render(request, self.template_name, context)
+
+        # Redirect to the posts list to see changes
+        return redirect(reverse('mysocial:posts_by_author', kwargs={'authorId': authorId}))
