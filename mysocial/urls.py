@@ -11,8 +11,8 @@ urlpatterns = [
     path('node_connection/<str:node_name>', views.NodeConnection.as_view(), name='node_connection'),
     path('api/<str:node_name>/info/', views.NodeInfoAPIView.as_view(), name='node_info'),
 
-    path('authors/', views.AuthorList.as_view()),
-    path('authors/<uuid:authorId>/', views.AuthorView.as_view()),
+    path('authors/', views.AuthorList.as_view(), name='authors'),
+    path('authors/<uuid:authorId>/', views.AuthorView.as_view(), name='authors-detail'),
     path('authors/<uuid:authorId>/followers/', views.FollowerList.as_view()),
     path('authors/<uuid:authorId>/followers/<uuid:follower>/', views.FollowDetail.as_view()),
     
