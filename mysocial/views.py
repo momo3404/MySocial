@@ -6,7 +6,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.decorators import login_required
-
+from django.contrib.auth.views import LoginView
+from django.urls import reverse
 import requests
 import uuid
 
@@ -68,7 +69,18 @@ def connect_to_remote_server(remote_server_id):
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
-       
+
+class CustomLoginView(LoginView):
+    template_name = 'base/registration/login.html'
+
+    def get_success_url(self):
+        user = self.request.user
+        try:
+            author_profile = user.author
+            return reverse('mysocial:public_profile', kwargs={'author_id': author_profile.authorId})
+        except Author.DoesNotExist:
+            return reverse('mysocial:index')  
+
 class AuthorList(APIView):
     def get(self, request, format=None):
         authors = Author.objects.all()
