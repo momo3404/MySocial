@@ -144,4 +144,4 @@ REST_FRAMEWORK = {
 
 django_on_heroku.settings(locals()) # bottom of the file
 
-GITHUB_TOKEN = config('GITHUB_TOKEN')
+# GITHUB_TOKEN = config('GITHUB_TOKEN')

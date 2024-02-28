@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.decorators import login_required
 
 import requests
 import uuid
@@ -133,6 +134,17 @@ def public_profile(request, author_id):
     except ValueError:
         # if ID not a valid UUID
         raise Http404("Invalid Author ID")
+
+def edit_display_name(request, author_id):
+    author = get_object_or_404(Author, authorId=author_id)
+
+    if request.method == 'POST':
+        new_display_name = request.POST.get('displayName')
+        author.displayName = new_display_name
+        author.save()
+        return redirect('mysocial:public_profile', author_id=author_id)
+
+    return render(request, 'base/mysocial/edit_display_name.html', {'author': author})
     
     
 class NodeInfoAPIView(APIView):
