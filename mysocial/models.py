@@ -31,8 +31,8 @@ class Follower(models.Model):
 class FollowRequest(models.Model):
     type = models.CharField(max_length=SHORT, default="Follow")
     summary = models.CharField(max_length=CONTENT, null=True)
-    actor = models.JSONField()
-    object = models.JSONField()
+    actor = models.ForeignKey(Author, related_name='requestfollowing', on_delete=models.CASCADE)
+    object = models.ForeignKey(Author, related_name='requestfollowed', on_delete=models.CASCADE)
     
     def __str__(self):
         return self.summary

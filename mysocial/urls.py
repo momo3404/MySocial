@@ -18,6 +18,8 @@ urlpatterns = [
     
     path('profile/<uuid:author_id>/', views.public_profile, name='public_profile'),
     path('profile/<uuid:author_id>/edit_display_name/', views.edit_display_name, name='edit_display_name'),
+    path('profile/<uuid:author_id>/follow/', views.follow, name='follow'),
+    path('profile/<uuid:author_id>/unfollow/', views.unfollow, name='unfollow'),
 
     path('github-activity/', views.fetch_github_activity, name='github-activity'),
 ]

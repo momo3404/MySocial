@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.urls import reverse
+from django.views.decorators.http import require_POST
 import requests
 import uuid
 
@@ -69,6 +70,24 @@ def connect_to_remote_server(remote_server_id):
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
+
+@login_required
+@require_POST
+def follow(request, author_id):
+    user_author = request.user.author
+    target_author = Author.objects.get(authorId=author_id)
+    Follower.objects.create(author=target_author, follower=user_author)
+    FollowRequest.objects.create(actor=user_author, object=target_author, summary="Follow request")
+    return redirect('mysocial:public_profile', author_id=author_id)
+
+@login_required
+@require_POST
+def unfollow(request, author_id):
+    user_author = request.user.author
+    target_author = Author.objects.get(authorId=author_id)
+    Follower.objects.filter(author=target_author, follower=user_author).delete()
+    return redirect('mysocial:public_profile', author_id=author_id)
+
 
 class CustomLoginView(LoginView):
     template_name = 'base/registration/login.html'
@@ -141,11 +160,27 @@ def public_profile(request, author_id):
     try:
         # author_id string from URL to a UUID object
         author_uuid = uuid.UUID(str(author_id))
-        author = get_object_or_404(Author, authorId=author_uuid)
-        return render(request, 'base/mysocial/public_profile.html', {'author': author})
     except ValueError:
         # if ID not a valid UUID
         raise Http404("Invalid Author ID")
+
+    author = get_object_or_404(Author, authorId=author_uuid)
+    
+    already_following = False
+    if request.user.is_authenticated:
+        try:
+            user_author = request.user.author
+            already_following = Follower.objects.filter(author=author, follower=user_author).exists()
+        except Author.DoesNotExist:
+            pass
+
+    context = {
+        'author': author,
+        'already_following': already_following,
+    }
+    
+    return render(request, 'base/mysocial/public_profile.html', context)
+
 
 def edit_display_name(request, author_id):
     author = get_object_or_404(Author, authorId=author_id)
