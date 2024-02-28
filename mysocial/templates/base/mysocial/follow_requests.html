@@ -1,0 +1,15 @@
+{% for request in follow_requests %}
+    <div>
+        <p>{{ request.actor.displayName }} wants to follow you.</p>
+        <form  method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success">Approve</button>
+        </form>
+        <form  method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Reject</button>
+        </form>
+    </div>
+{% empty %}
+    <p>You have no follow requests.</p>
+{% endfor %}

@@ -26,16 +26,20 @@
 
     {% if user.is_authenticated %}
         <div class="text-center">
-            {% if already_following %}
-                <form action="{% url 'mysocial:unfollow' author.authorId %}" method="post">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-warning">Unfollow</button>
-                </form>
+            {% if viewing_own_profile %}
+                <a href="{% url 'mysocial:follow_requests' author.authorId %}" class="btn btn-info">Follow Requests</a>
             {% else %}
-                <form action="{% url 'mysocial:follow' author.authorId %}" method="post">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-success">Follow</button>
-                </form>
+                {% if is_following %}
+                    <form action="{% url 'mysocial:unfollow' author.authorId %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning">Unfollow</button>
+                    </form>
+                {% else %}
+                    <form action="{% url 'mysocial:follow' author.authorId %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success">Follow</button>
+                    </form>
+                {% endif %}
             {% endif %}
         </div>
     {% endif %}

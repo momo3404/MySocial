@@ -88,6 +88,17 @@ def unfollow(request, author_id):
     Follower.objects.filter(author=target_author, follower=user_author).delete()
     return redirect('mysocial:public_profile', author_id=author_id)
 
+@login_required
+def follow_requests(request, author_id):
+    try:
+        user_author = request.user.author
+        if str(user_author.authorId) != str(author_id):
+            raise Http404("Access denied!")
+
+        follow_requests = FollowRequest.objects.filter(object=user_author)
+        return render(request, 'base/mysocial/follow_requests.html', {'follow_requests': follow_requests})
+    except Author.DoesNotExist:
+        raise Http404("Author not found!")
 
 class CustomLoginView(LoginView):
     template_name = 'base/registration/login.html'
@@ -167,9 +178,11 @@ def public_profile(request, author_id):
     author = get_object_or_404(Author, authorId=author_uuid)
     
     already_following = False
+    viewing_own_profile = False
     if request.user.is_authenticated:
         try:
             user_author = request.user.author
+            viewing_own_profile = user_author.authorId == author_uuid
             already_following = Follower.objects.filter(author=author, follower=user_author).exists()
         except Author.DoesNotExist:
             pass
@@ -177,6 +190,7 @@ def public_profile(request, author_id):
     context = {
         'author': author,
         'already_following': already_following,
+        'viewing_own_profile': viewing_own_profile,
     }
     
     return render(request, 'base/mysocial/public_profile.html', context)
