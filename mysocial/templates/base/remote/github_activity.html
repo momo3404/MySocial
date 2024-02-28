@@ -1,0 +1,13 @@
+<html>
+<head>
+    <title>GitHub Activity</title>
+</head>
+<body>
+    <h1>GitHub Activity</h1>
+    <ul>
+        {% for event in events %}
+            <li>{{ event.type }} - {{ event.created_at }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

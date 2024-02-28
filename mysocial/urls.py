@@ -17,5 +17,7 @@ urlpatterns = [
     path('authors/<uuid:authorId>/followers/<uuid:follower>/', views.FollowDetail.as_view()),
     
     path('profile/<uuid:author_id>/', views.public_profile, name='public_profile'),
+
+    path('github-activity/', views.fetch_github_activity, name='github-activity'),
 ]
 

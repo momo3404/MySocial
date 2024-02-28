@@ -9,6 +9,8 @@ from rest_framework.permissions import IsAuthenticated
 import requests
 import uuid
 
+from decouple import config
+
 from .forms import RegisterForm, RemoteServerForm
 from .models import RemoteServer, Author, Follower, FollowRequest, Post, Comment, Node
 from .serializers import AuthorSerializer, FollowerSerializer, FollowRequestSerializer, PostSerializer, CommentSerializer
@@ -179,4 +181,14 @@ class NodeConnection(APIView):
         except Node.DoesNotExist:
             return Response({'error': 'Node not found'}, status=status.HTTP_404_NOT_FOUND)
     
-
+def fetch_github_activity(request):
+    github_token = config('GITHUB_TOKEN')
+    headers = {'Authorization': f'token {github_token}'}
+    url = 'https://api.github.com/users/archip1/events/public'
+    
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        events = response.json()
+        return render(request, 'activity/github_activity.html', {'events': events})
+    else:
+        return HttpResponse("Failed to fetch GitHub activity", status=500)
