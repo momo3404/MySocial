@@ -10,7 +10,7 @@ CONTENT = 2000
     
 class Author(models.Model):
     type = models.CharField(max_length=SHORT, null=True)
-    authorId = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    authorId = models.UUIDField(default=uuid.uuid4, unique=True)
     url = models.URLField(max_length=URL, unique=True, null=False)
     host = models.URLField(max_length=URL, null=True)
     displayName = models.CharField(max_length=SHORT, null=True)
@@ -31,8 +31,8 @@ class Follower(models.Model):
 class FollowRequest(models.Model):
     type = models.CharField(max_length=SHORT, default="Follow")
     summary = models.CharField(max_length=CONTENT, null=True)
-    actor = models.JSONField()
-    object = models.JSONField()
+    actor = models.ForeignKey(Author, related_name='requestfollowing', on_delete=models.CASCADE)
+    object = models.ForeignKey(Author, related_name='requestfollowed', on_delete=models.CASCADE)
     
     def __str__(self):
         return self.summary

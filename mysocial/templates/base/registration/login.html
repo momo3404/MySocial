@@ -19,7 +19,7 @@
         }
     </style>
     <div class="center"> 
-        <form  style="border:1px solid black" class="form-group">
+        <form  style="border:1px solid black" class="form-group" method="post" action="{% url 'mysocial:login' %}">
         <p>Please login to your account</p>
         {% csrf_token %}
         {{ form.as_p }}

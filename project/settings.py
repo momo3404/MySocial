@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import django_on_heroku # top of the file
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -143,3 +144,4 @@ REST_FRAMEWORK = {
 
 django_on_heroku.settings(locals()) # bottom of the file
 
+# GITHUB_TOKEN = config('GITHUB_TOKEN')

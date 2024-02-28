@@ -7,10 +7,14 @@ from django.views import View
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import LoginView
 from django.urls import reverse
-
+from django.views.decorators.http import require_POST
 import requests
 import uuid
+
+from decouple import config
 
 from .forms import RegisterForm, RemoteServerForm
 from .models import RemoteServer, Author, Follower, FollowRequest, Post, Comment, Node
@@ -68,7 +72,47 @@ def connect_to_remote_server(remote_server_id):
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
-       
+
+@login_required
+@require_POST
+def follow(request, author_id):
+    user_author = request.user.author
+    target_author = Author.objects.get(authorId=author_id)
+    Follower.objects.create(author=target_author, follower=user_author)
+    FollowRequest.objects.create(actor=user_author, object=target_author, summary="Follow request")
+    return redirect('mysocial:public_profile', author_id=author_id)
+
+@login_required
+@require_POST
+def unfollow(request, author_id):
+    user_author = request.user.author
+    target_author = Author.objects.get(authorId=author_id)
+    Follower.objects.filter(author=target_author, follower=user_author).delete()
+    return redirect('mysocial:public_profile', author_id=author_id)
+
+@login_required
+def follow_requests(request, author_id):
+    try:
+        user_author = request.user.author
+        if str(user_author.authorId) != str(author_id):
+            raise Http404("Access denied!")
+
+        follow_requests = FollowRequest.objects.filter(object=user_author)
+        return render(request, 'base/mysocial/follow_requests.html', {'follow_requests': follow_requests})
+    except Author.DoesNotExist:
+        raise Http404("Author not found!")
+
+class CustomLoginView(LoginView):
+    template_name = 'base/registration/login.html'
+
+    def get_success_url(self):
+        user = self.request.user
+        try:
+            author_profile = user.author
+            return reverse('mysocial:public_profile', kwargs={'author_id': author_profile.authorId})
+        except Author.DoesNotExist:
+            return reverse('mysocial:index')  
+
 class AuthorList(APIView):
     def get(self, request, format=None):
         authors = Author.objects.all()
@@ -129,11 +173,41 @@ def public_profile(request, author_id):
     try:
         # author_id string from URL to a UUID object
         author_uuid = uuid.UUID(str(author_id))
-        author = get_object_or_404(Author, authorId=author_uuid)
-        return render(request, 'base/mysocial/public_profile.html', {'author': author})
     except ValueError:
         # if ID not a valid UUID
         raise Http404("Invalid Author ID")
+
+    author = get_object_or_404(Author, authorId=author_uuid)
+    
+    already_following = False
+    viewing_own_profile = False
+    if request.user.is_authenticated:
+        try:
+            user_author = request.user.author
+            viewing_own_profile = user_author.authorId == author_uuid
+            already_following = Follower.objects.filter(author=author, follower=user_author).exists()
+        except Author.DoesNotExist:
+            pass
+
+    context = {
+        'author': author,
+        'already_following': already_following,
+        'viewing_own_profile': viewing_own_profile,
+    }
+    
+    return render(request, 'base/mysocial/public_profile.html', context)
+
+
+def edit_display_name(request, author_id):
+    author = get_object_or_404(Author, authorId=author_id)
+
+    if request.method == 'POST':
+        new_display_name = request.POST.get('displayName')
+        author.displayName = new_display_name
+        author.save()
+        return redirect('mysocial:public_profile', author_id=author_id)
+
+    return render(request, 'base/mysocial/edit_display_name.html', {'author': author})
     
     
 class NodeInfoAPIView(APIView):
@@ -182,6 +256,7 @@ class NodeConnection(APIView):
         except Node.DoesNotExist:
             return Response({'error': 'Node not found'}, status=status.HTTP_404_NOT_FOUND)
 
+
 class PostListCreateView(View):
     template_name = 'base/mysocial/stream_posts.html'
 
@@ -222,3 +297,17 @@ class PostListCreateView(View):
 
         # Redirect to the posts list to see changes
         return redirect(reverse('mysocial:posts_by_author', kwargs={'authorId': authorId}))
+
+    
+def fetch_github_activity(request):
+    github_token = config('GITHUB_TOKEN')
+    headers = {'Authorization': f'token {github_token}'}
+    url = 'https://api.github.com/users/archip1/events/public'
+    
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        events = response.json()
+        return render(request, 'activity/github_activity.html', {'events': events})
+    else:
+        return HttpResponse("Failed to fetch GitHub activity", status=500)
+
