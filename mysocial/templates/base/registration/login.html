@@ -51,10 +51,10 @@
                       <div class="text-center">
 
                         <img src="{% static "images/logo.png" %}" alt="Logo" style="width:350px;height:150px;">
-                        <h4 class="mt-1 mb-4 pb-1">Welcome to MySocial</h4>
+                        <h4 style = "font-family: Georgia, 'Times New Roman', Times, serif" class="mt-1 mb-4 pb-1">Welcome to MySocial</h4>
                       </div>
                       <form class="form-group" method="post" action="{% url 'mysocial:login' %}">
-                        <p style="text-align: center;"> Please login to your account </p>
+                        <p style="text-align: center; font-family: Georgia, 'Times New Roman', Times, serif"> Please login to your account </p>
                             
                             {% csrf_token %}
                             {{ form.as_p }}
@@ -69,9 +69,9 @@
                   </div>
                   <div class="col-lg-6 d-flex align-items-center gradient-custom-2">
                     <div>
-                      <h4 style="color:whitesmoke; margin-left: 3%;" class="mb-4">The Future of Social Media</h4>
-                      <p style="color:whitesmoke; text-align:left; font-size:90%; margin-left: 3%; margin-right: 3%;" class="small mb-0">Embrace simplicity and autonomy as we redefine social networking.
-                         MySocial is a streamlined, peer-to-peer platform designed for effortless sharing. Import content from various sources, like GitHub, 
+                      <h4 style="color:whitesmoke; margin-left: 3%; font-family: Georgia, 'Times New Roman', Times, serif" class="mb-4">The Future of Social Media</h4>
+                      <p style="color:whitesmoke; text-align:left; font-size:90%; margin-left: 3%; margin-right: 3%; font-family: Georgia, 'Times New Roman', Times, serif" class="small mb-0">Embrace simplicity and autonomy as we redefine social networking.
+                         MySocial is a streamlined, peer-to-peer platform designed for effortless sharing. Import content from various sources like GitHub, 
                          share posts seamlessly, and follow authors across servers.</p>
                     </div>
                   </div>
