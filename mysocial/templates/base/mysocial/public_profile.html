@@ -30,11 +30,11 @@
     </div>
 </nav>
 
-<body class="h-100 gradient-form" style="background-color: #039BE5;">
+<body class="h-100 gradient-form" style="background-color: #01579B;">
     <div class="text-center">
-        <div class="center"> 
+        <div class="center" style="color: #FAFAFA;"> 
         <h1>{{ author.displayName }}</h1>
-        <a href="url" style="color:blueviolet;">Profile URL: {{ author.url }} </a>
+        <a href="url" style="color:#FFD600;">Profile URL: {{ author.url }} </a>
         </div>
     
     <a href="{% url 'mysocial:edit_display_name' author.authorId %}" class="btn btn-primary">Edit Profile</a>
