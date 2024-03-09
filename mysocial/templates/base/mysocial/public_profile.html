@@ -14,6 +14,22 @@
     </style>
 </head>
 
+<nav class="navbar navbar-expand-lg navbar-light" style="background-color: #DBB630;">
+    <div class="container-fluid">
+      <a class="navbar-brand" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 150%;" href="{% url 'mysocial:login' %}">MySocial</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNavDropdown">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:posts_by_author' author.authorId %}">Stream</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+</nav>
+
 <body class="h-100 gradient-form" style="background-color: #039BE5;">
     <div class="text-center">
         <div class="center"> 

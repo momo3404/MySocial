@@ -9,6 +9,7 @@
 </head>
 
 <body class="h-100 gradient-form" style="background-color: #01579B;">
+    
     <style>
         .center {
             margin: auto;
@@ -39,6 +40,7 @@
         }
         }
     </style>
+
     <section class="h-100 gradient-form .gradient-custom-2" >
         <div class="container py-5 h-100 .">
           <div class="row d-flex justify-content-center align-items-center h-100">
@@ -55,11 +57,8 @@
                       </div>
                       <form class="form-group" method="post" action="{% url 'mysocial:login' %}">
                         <p style="text-align: center; font-family: Georgia, 'Times New Roman', Times, serif"> Please login to your account </p>
-                            
                             {% csrf_token %}
                             {{ form.as_p }}
-                        
-
                         <div class="text-center">
                             <button class="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3" type="submit">Login</button>
                         </div>
@@ -72,7 +71,7 @@
                       <h4 style="color:whitesmoke; margin-left: 3%; font-family: Georgia, 'Times New Roman', Times, serif" class="mb-4">The Future of Social Media</h4>
                       <p style="color:whitesmoke; text-align:left; font-size:90%; margin-left: 3%; margin-right: 3%; font-family: Georgia, 'Times New Roman', Times, serif" class="small mb-0">Embrace simplicity and autonomy as we redefine social networking.
                          MySocial is a streamlined, peer-to-peer platform designed for effortless sharing. Import content from various sources like GitHub, 
-                         share posts seamlessly, and follow authors across servers.</p>
+                         share posts seamlessly, and follow users across servers.</p>
                     </div>
                   </div>
                 </div>
