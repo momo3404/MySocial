@@ -8,12 +8,16 @@
     {% for request in follow_requests %}
         <div>
             <p>{{ request.actor.displayName }} wants to follow you.</p>
-            <form  method="post">
+            <form  method="post" action="{% url 'mysocial:process_follow_request' author_id=request.object.authorId %}">
                 {% csrf_token %}
+                <input type="hidden" name="action" value="approve">
+                <input type="hidden" name="request_id" value="{{ request.id }}">
                 <button type="submit" class="btn btn-success">Approve</button>
             </form>
-            <form  method="post">
+            <form  method="post" action="{% url 'mysocial:process_follow_request' author_id=request.object.authorId %}">
                 {% csrf_token %}
+                <input type="hidden" name="action" value="reject">
+                <input type="hidden" name="request_id" value="{{ request.id }}">
                 <button type="submit" class="btn btn-danger">Reject</button>
             </form>
         </div>

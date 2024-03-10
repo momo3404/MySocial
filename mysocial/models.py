@@ -26,7 +26,7 @@ class Follower(models.Model):
     follower = models.ForeignKey(Author, related_name='followers', on_delete=models.CASCADE)
     
     def __str__(self):
-        return self.follower.displayName + "  sent a follow request to  " + self.author.displayName
+        return self.follower.displayName + "  is following  " + self.author.displayName
 
 class FollowRequest(models.Model):
     type = models.CharField(max_length=SHORT, default="Follow")
@@ -35,7 +35,7 @@ class FollowRequest(models.Model):
     object = models.ForeignKey(Author, related_name='requestfollowed', on_delete=models.CASCADE)
     
     def __str__(self):
-        return self.summary
+        return self.actor.displayName + "  sent a follow request to  " + self.object.displayName
     
 class Post(models.Model):
     type = models.CharField(max_length=SHORT, default="post")

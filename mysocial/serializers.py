@@ -45,7 +45,7 @@ class FollowerSerializer(serializers.ModelSerializer):
 class FollowRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = FollowRequest
-        fields = ['type', 'summary', 'actor', 'object']
+        fields = ['id', 'type', 'summary', 'actor', 'object']
         
 class PostSerializer(serializers.ModelSerializer):
     author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all(), allow_null=True)
