@@ -39,8 +39,25 @@
         }
     </style>
 </head>
-<body class="h-100 gradient-form" style="background-color: #039BE5; margin-top: 50px;">
-    <div class="text-center">
+
+<nav class="navbar navbar-expand-lg navbar-light" style="background-color: #DBB630;">
+    <div class="container-fluid">
+      <a class="navbar-brand" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 150%;" href="{% url 'mysocial:login' %}">MySocial</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNavDropdown">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:public_profile' author.authorId %}">Profile</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+</nav>
+
+<body class="h-100 gradient-form" style="background-color: #0056b3;">
+    <div class="text-center" style="color: #faFafa;">
         <div class="center">
             <h1>Stream</h1>
             <!-- Form Section for Creating and Editing Posts -->
@@ -84,7 +101,8 @@
                 {% endfor %}
             </div>
             <!-- Floating Action Button for New Post -->
-            <a href="javascript:void(0);" onclick="newPost();" class="btn btn-primary rounded-circle" style="position: fixed; bottom: 20px; right: 20px; z-index: 100; font-size: 24px;">
+            <a href="javascript:void(0);" onclick="newPost();" class="btn btn-primary rounded-circle" style="background-color: #DBB630; color:#0056b3;
+            position: fixed; bottom: 20px; right: 20px; z-index: 100; font-size: 24px;">
                 <i class="bi bi-plus-lg"></i>
             </a>
         </div>
