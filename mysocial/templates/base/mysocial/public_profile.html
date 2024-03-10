@@ -73,11 +73,13 @@
             {% if viewing_own_profile %}
                 <a href="{% url 'mysocial:follow_requests' author.authorId %}" class="btn btn-info">Follow Requests</a>
             {% else %}
-                {% if is_following %}
+                {% if already_following %}
                     <form action="{% url 'mysocial:unfollow' author.authorId %}" method="post">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-warning">Unfollow</button>
                     </form>
+                {% elif follow_requested %}
+                    <h3>Requested to Follow</h3>
                 {% else %}
                     <form action="{% url 'mysocial:follow' author.authorId %}" method="post">
                         {% csrf_token %}
