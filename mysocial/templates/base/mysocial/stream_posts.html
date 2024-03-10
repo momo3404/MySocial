@@ -84,10 +84,12 @@
                 <div class="card post-card" id="post-{{ post.id }}">
                     <div class="card-header post-header">
                         <h5 class="post-title">{{ post.title }}</h5>
-                        <h6>By: {{ post.author.displayName }}
+                        <h6>By: <a href="{% url 'mysocial:public_profile' post.author.authorId %}" >
+                            {{ post.author.displayName }}
+                            </a>
                         <!-- Edit Button -->
                         {% if author.authorId == post.author.authorId %}
-                        <button onclick="editPost('{{ post.id }}', '{{ post.title|escapejs }}', '{{ post.content|escapejs }}');" class="btn btn-sm btn-edit">Edit</button>
+                        <button style = "margin-left: 10px;" onclick="editPost('{{ post.id }}', '{{ post.title|escapejs }}', '{{ post.content|escapejs }}');" class="btn btn-sm btn-edit">Edit</button>
                         {% endif %}
                         </h6>
                     </div>
