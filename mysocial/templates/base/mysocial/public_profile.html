@@ -4,13 +4,40 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <style>
         .edit-profile-btn {
-            float: right; /* Align the button to the right */
+            float: right;
         }
 
         .center {
             margin: auto;
             width: 400px;
         }
+
+        .post-card {
+            width: 300px;
+            height: 200px;
+            border: 4px solid #DBB630;
+            margin: 10px;
+            overflow: hidden;
+            overflow: hidden; /* Hide the overflowing text */
+            text-overflow: ellipsis; /* Display an ellipsis (...) when text overflows */
+        }
+
+        .post-content{
+            max-height: 100px;
+            overflow: hidden;
+            padding: 10px;
+            transition: max-height 0.3s ease;
+        }
+        .post-footer {
+            padding: 10px;
+        }
+
+        .show-more-btn {
+            cursor: pointer;
+            color: #DBB630;
+            margin-top: 5px;
+        }
+
     </style>
 </head>
 
@@ -61,19 +88,20 @@
         </div>
     {% endif %}
 
-    <div class="center">
-        <h2>{{ author.displayName }}'s Posts</h2>
+    <div style="color: #FAFAFA; text-align: left; margin-left: 20px;">
+        <h2>Posts</h2>
         <div class="posts-container">
             {% for post in posts %}
             <div class="card post-card" id="post-{{ post.id }}">
                 <div class="card-header post-header">
                     <h5 class="post-title">{{ post.title }}</h5>
                 </div>
-                <div class="card-body post-content">
+                <div class="card-body post-content" id="post-content-{{ post.id }}">
                     <p>{{ post.content }}</p>
                 </div>
                 <div class="card-footer post-footer">
                     <small>Published: {{ post.published }}</small>
+                    <div class="show-more-btn" onclick="togglePostContent('{{ post.id }}')">Show More</div>
                 </div>
             </div>
             {% empty %}
@@ -81,5 +109,23 @@
             {% endfor %}
         </div>
     </div>
+
+    <script>
+        function togglePostContent(postId) {
+            const postContent = document.getElementById(`post-content-${postId}`);
+            const showMoreBtn = document.querySelector(`#post-${postId} .show-more-btn`);
+    
+            if (postContent.style.maxHeight) {
+                // Content is currently expanded, so collapse it
+                postContent.style.maxHeight = null;
+                showMoreBtn.innerText = 'Show More';
+            } else {
+                // Content is currently collapsed, so expand it
+                postContent.style.maxHeight = postContent.scrollHeight + 'px';
+                showMoreBtn.innerText = 'Show Less';
+            }
+        }
+    </script>
+
 </body>
 </html>
