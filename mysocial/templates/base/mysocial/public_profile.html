@@ -36,8 +36,9 @@
         <h1>{{ author.displayName }}</h1>
         <a href="url" style="color:#FFD600;">Profile URL: {{ author.url }} </a>
         </div>
-    
-    <a href="{% url 'mysocial:edit_display_name' author.authorId %}" class="btn btn-primary">Edit Profile</a>
+        {% if viewing_own_profile %}
+            <a href="{% url 'mysocial:edit_display_name' author.authorId %}" class="btn btn-primary">Edit Profile</a>
+        {%endif%}
     </div>
 
     {% if user.is_authenticated %}
@@ -59,5 +60,26 @@
             {% endif %}
         </div>
     {% endif %}
+
+    <div class="center">
+        <h2>{{ author.displayName }}'s Posts</h2>
+        <div class="posts-container">
+            {% for post in posts %}
+            <div class="card post-card" id="post-{{ post.id }}">
+                <div class="card-header post-header">
+                    <h5 class="post-title">{{ post.title }}</h5>
+                </div>
+                <div class="card-body post-content">
+                    <p>{{ post.content }}</p>
+                </div>
+                <div class="card-footer post-footer">
+                    <small>Published: {{ post.published }}</small>
+                </div>
+            </div>
+            {% empty %}
+            <p>No posts to display.</p>
+            {% endfor %}
+        </div>
+    </div>
 </body>
 </html>
