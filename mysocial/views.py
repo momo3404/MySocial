@@ -178,7 +178,8 @@ def public_profile(request, author_id):
         raise Http404("Invalid Author ID")
 
     author = get_object_or_404(Author, authorId=author_uuid)
-    
+    posts = Post.objects.filter(author=author).order_by('-published')
+    print(posts)
     already_following = False
     viewing_own_profile = False
     if request.user.is_authenticated:
@@ -191,6 +192,7 @@ def public_profile(request, author_id):
 
     context = {
         'author': author,
+        'posts': posts,
         'already_following': already_following,
         'viewing_own_profile': viewing_own_profile,
     }
