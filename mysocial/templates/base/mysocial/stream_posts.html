@@ -93,7 +93,11 @@
                 {% for post in posts %}
                 <div class="card post-card" id="post-{{ post.id }}">
                     <div class="card-header post-header">
-                        <h5 class="post-title">{{ post.title }}</h5>
+                        <h5 class="post-title">
+                            <a href="{% url 'mysocial:post_detail' authorId=post.author.authorId post_id=post.postId %}">
+                                {{ post.title }}
+                            </a>
+                        </h5>
                         <h6>By: <a href="{% url 'mysocial:public_profile' post.author.authorId %}" >
                             {{ post.author.displayName }}
                             </a>

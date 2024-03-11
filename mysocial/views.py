@@ -336,13 +336,13 @@ class PostDetailView(View):
     template_name = 'base/mysocial/stream_posts.html'
 
     def get(self, request, authorId, post_id):
-        post = get_object_or_404(Post, pk=post_id)
+        post = get_object_or_404(Post, postId=post_id)
         author = get_object_or_404(Author, authorId=authorId)
         context = {'post': post, 'author': author}
         return render(request, 'base/mysocial/post_detail.html', context)
 
     def delete(self, request, authorId, post_id):
-            post = get_object_or_404(Post, pk=post_id)
+            post = get_object_or_404(Post, postId=post_id)
             author = get_object_or_404(Author, authorId=authorId)
 
             if request.user.author == author and post.author == author:
@@ -352,7 +352,7 @@ class PostDetailView(View):
                 return HttpResponse('Forbidden', status=403)
 
     def put(self, request, authorId, post_id):
-            post = get_object_or_404(Post, pk=post_id)
+            post = get_object_or_404(Post, postId=post_id)
             author = get_object_or_404(Author, authorId=authorId)
 
             if request.user.author == author and post.author == author:
