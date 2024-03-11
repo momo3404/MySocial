@@ -98,7 +98,7 @@ def inbox(request, authorId):
             raise Http404("Access denied!")
 
         follow_requests = FollowRequest.objects.filter(object=user_author)
-        return render(request, 'base/mysocial/follow_requests.html', {'follow_requests': follow_requests})
+        return render(request, 'base/mysocial/follow_requests.html', {'author': user_author,'follow_requests': follow_requests})
     except Author.DoesNotExist:
         raise Http404("Author not found!")
 

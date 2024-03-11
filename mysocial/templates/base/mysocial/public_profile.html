@@ -22,10 +22,20 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarNavDropdown">
         <ul class="navbar-nav">
-          <li class="nav-item">
-            <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:posts_by_author' author.authorId %}">Stream</a>
-          </li>
-        </ul>
+            <li class="nav-item">
+              <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:public_profile' author.authorId %}">Profile</a>
+            </li>
+          </ul>
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:inbox' author.authorId %}">Inbox</a>
+            </li>
+          </ul>
+        <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:posts_by_author' author.authorId %}">Stream</a>
+            </li>
+          </ul>
       </div>
     </div>
 </nav>
