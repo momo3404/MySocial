@@ -10,7 +10,9 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.urls import reverse
+from django.http import HttpResponseRedirect
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 import requests
 import uuid
 
@@ -78,8 +80,8 @@ def connect_to_remote_server(remote_server_id):
 def follow(request, author_id):
     user_author = request.user.author
     target_author = Author.objects.get(authorId=author_id)
-    Follower.objects.create(author=target_author, follower=user_author)
-    FollowRequest.objects.create(actor=user_author, object=target_author, summary="Follow request")
+    if not FollowRequest.objects.filter(actor=user_author, object=target_author).exists():
+        FollowRequest.objects.create(actor=user_author, object=target_author, summary="Follow request")
     return redirect('mysocial:public_profile', author_id=author_id)
 
 @login_required
@@ -101,6 +103,29 @@ def inbox(request, authorId):
         return render(request, 'base/mysocial/follow_requests.html', {'author': user_author,'follow_requests': follow_requests})
     except Author.DoesNotExist:
         raise Http404("Author not found!")
+
+@login_required
+@csrf_exempt  
+def process_follow_request(request, author_id):
+    print("Called")
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        request_id = request.POST.get('request_id')
+
+        try:
+            follow_request = FollowRequest.objects.get(id=request_id)
+
+            if action == 'approve':
+                Follower.objects.create(author=follow_request.object, follower=follow_request.actor)
+
+            follow_request.delete()
+
+            return HttpResponseRedirect(reverse('mysocial:follow_requests', args=[author_id]))
+
+        except FollowRequest.DoesNotExist:
+            return HttpResponseRedirect(reverse('mysocial:follow_requests', args=[author_id]))
+
+    return HttpResponseRedirect(reverse('mysocial:follow_requests', args=[author_id]))
 
 class CustomLoginView(LoginView):
     template_name = 'base/registration/login.html'
@@ -178,7 +203,8 @@ def public_profile(request, author_id):
         raise Http404("Invalid Author ID")
 
     author = get_object_or_404(Author, authorId=author_uuid)
-    
+    posts = Post.objects.filter(author=author).order_by('-published')
+    print(posts)
     already_following = False
     viewing_own_profile = False
     if request.user.is_authenticated:
@@ -186,12 +212,16 @@ def public_profile(request, author_id):
             user_author = request.user.author
             viewing_own_profile = user_author.authorId == author_uuid
             already_following = Follower.objects.filter(author=author, follower=user_author).exists()
+            follow_requested = FollowRequest.objects.filter(actor=user_author, object=author).exists()
+            print(already_following)
         except Author.DoesNotExist:
             pass
 
     context = {
         'author': author,
+        'posts': posts,
         'already_following': already_following,
+        'follow_requested': follow_requested,
         'viewing_own_profile': viewing_own_profile,
     }
     

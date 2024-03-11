@@ -6,6 +6,8 @@ from django.contrib.auth.models import User
 admin.site.register(Post)
 admin.site.register(Author)
 admin.site.register(Node)
+admin.site.register(Follower)
+admin.site.register(FollowRequest)
 
 def make_active(modeladmin, request, queryset):
     queryset.update(is_active=True)
