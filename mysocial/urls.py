@@ -16,13 +16,13 @@ urlpatterns = [
     path('authors/<uuid:authorId>/followers/', views.FollowerList.as_view()),
     path('authors/<uuid:authorId>/followers/<uuid:follower>/', views.FollowDetail.as_view()),
     path('authors/<uuid:authorId>/posts/', views.PostListCreateView.as_view(), name='posts_by_author'),
+    path('authors/<uuid:authorId>/inbox/', views.inbox, name='inbox'),
 
     path('profile/<uuid:author_id>/', views.public_profile, name='public_profile'),
     path('profile/<uuid:author_id>/edit_display_name/', views.edit_display_name, name='edit_display_name'),
     path('profile/<uuid:author_id>/follow/', views.follow, name='follow'),
     path('profile/<uuid:author_id>/unfollow/', views.unfollow, name='unfollow'),
     
-    path('follow_requests/<uuid:author_id>/', views.follow_requests, name='follow_requests'),
     path('process_follow_request/<uuid:author_id>/', views.process_follow_request, name='process_follow_request'),
 
     path('github-activity/', views.fetch_github_activity, name='github-activity'),
