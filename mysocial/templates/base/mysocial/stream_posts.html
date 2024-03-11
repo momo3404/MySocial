@@ -108,6 +108,13 @@
                     </div>
                     <div class="card-footer post-footer">
                         <small>Published: {{ post.published }}</small>
+                        <div class="post-interactions">
+                            <form action="{% url 'mysocial:like_post' post.postId %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-edit">Like</button>
+                            </form>
+                            <span class="like-count">{{ post.likesCount }} Likes</span>
+                        </div>
                     </div>
                 </div>
                 {% endfor %}

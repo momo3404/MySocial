@@ -15,11 +15,12 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 import requests
 import uuid
+import json
 
 from decouple import config
 
 from .forms import RegisterForm, RemoteServerForm
-from .models import RemoteServer, Author, Follower, FollowRequest, Post, Comment, Node
+from .models import *
 from .serializers import AuthorSerializer, FollowerSerializer, FollowRequestSerializer, PostSerializer, CommentSerializer
 
 # Create your views here.
@@ -314,7 +315,10 @@ class PostListCreateView(View):
         else:
             # Create new post
             if title and content:
-                Post.objects.create(title=title, content=content, author=author)
+                new_post = Post.objects.create(title=title, content=content, author=author)
+                post_url = reverse('mysocial:post_detail', kwargs={'authorId': authorId, 'post_id': new_post.postId})
+                new_post.url = request.build_absolute_uri(post_url)
+                new_post.save()
             else:
                 # Handle missing title or content for new post scenario
                 posts = Post.objects.all().order_by('-published')
@@ -327,6 +331,61 @@ class PostListCreateView(View):
 
         # Redirect to the posts list to see changes
         return redirect(reverse('mysocial:posts_by_author', kwargs={'authorId': authorId}))
+
+class PostDetailView(View):
+    template_name = 'base/mysocial/stream_posts.html'
+
+    def get(self, request, authorId, post_id):
+        post = get_object_or_404(Post, pk=post_id)
+        author = get_object_or_404(Author, authorId=authorId)
+        context = {'post': post, 'author': author}
+        return render(request, 'base/mysocial/post_detail.html', context)
+
+    def delete(self, request, authorId, post_id):
+            post = get_object_or_404(Post, pk=post_id)
+            author = get_object_or_404(Author, authorId=authorId)
+
+            if request.user.author == author and post.author == author:
+                post.delete()
+                return HttpResponse('Post deleted', status=204)
+            else:
+                return HttpResponse('Forbidden', status=403)
+
+    def put(self, request, authorId, post_id):
+            post = get_object_or_404(Post, pk=post_id)
+            author = get_object_or_404(Author, authorId=authorId)
+
+            if request.user.author == author and post.author == author:
+                data = json.loads(request.body)
+                post.title = data.get('title', post.title)
+                post.content = data.get('content', post.content)
+                post.save()
+                return HttpResponse('Post updated', status=200)
+            else:
+                return HttpResponse('Forbidden', status=403)
+
+@login_required
+@require_POST
+def like_post(request, post_id):
+    post = get_object_or_404(Post, postId=post_id)
+    user_author = request.user.author
+
+    existing = Like.objects.filter(author=user_author, object_url=post.url).first()
+
+    if not existing:
+        Like.objects.create(author=user_author, object_url=post.url, summary=f"{user_author.displayName} Likes your post")
+        post.likesCount += 1
+        post.save()
+    else:
+        existing.delete()
+        post.likesCount -= 1
+        post.save()
+
+    referer_url = request.META.get('HTTP_REFERER')
+    if referer_url:
+        return HttpResponseRedirect(referer_url)
+    else:
+        return HttpResponseRedirect('/')
 
     
 def fetch_github_activity(request):
