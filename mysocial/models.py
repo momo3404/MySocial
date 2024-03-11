@@ -48,7 +48,8 @@ class Post(models.Model):
     content_type = models.CharField(max_length=SHORT, null=True)
     content = models.TextField(max_length=CONTENT, null=True, blank=True)
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='author', null=True, blank=True)
-    count = models.IntegerField(null=True)
+    count = models.IntegerField(default=0)
+    likesCount = models.IntegerField(default=0)
     comments = models.URLField(max_length=URL, null=True)
     published = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     visibility = models.CharField(max_length=SHORT, default="PUBLIC", null=False)
@@ -84,3 +85,15 @@ class RemoteServer(models.Model):
 
     def __str__(self):
         return self.url
+    
+    
+class Like(models.Model):
+    context = models.URLField(default="https://www.w3.org/ns/activitystreams")
+    summary = models.CharField(max_length=255)
+    type = models.CharField(max_length=50, default="Like")
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='likes_given')
+    object_url = models.URLField()  
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.author.displayName} likes {self.object_url}"

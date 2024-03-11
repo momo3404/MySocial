@@ -16,6 +16,7 @@ urlpatterns = [
     path('authors/<uuid:authorId>/followers/', views.FollowerList.as_view()),
     path('authors/<uuid:authorId>/followers/<uuid:follower>/', views.FollowDetail.as_view()),
     path('authors/<uuid:authorId>/posts/', views.PostListCreateView.as_view(), name='posts_by_author'),
+    path('authors/<uuid:authorId>/posts/<uuid:post_id>', views.PostDetailView.as_view(), name='post_detail'),
     path('authors/<uuid:authorId>/inbox/', views.inbox, name='inbox'),
 
     path('profile/<uuid:author_id>/', views.public_profile, name='public_profile'),
@@ -24,6 +25,7 @@ urlpatterns = [
     path('profile/<uuid:author_id>/unfollow/', views.unfollow, name='unfollow'),
     
     path('process_follow_request/<uuid:author_id>/', views.process_follow_request, name='process_follow_request'),
+    path('posts/<uuid:post_id>/like/', views.like_post, name='like_post'),
 
     path('github-activity/', views.fetch_github_activity, name='github-activity'),
 ]

@@ -36,6 +36,13 @@ class AuthorSerializer(serializers.Serializer):
         return instance
     
     
+class LikeSerializer(serializers.ModelSerializer):
+    author = AuthorSerializer(read_only=True)
+
+    class Meta:
+        model = Like
+        fields = ['context', 'summary', 'type', 'author', 'object_url', 'timestamp']
+    
 class FollowerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Follower

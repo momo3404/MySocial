@@ -1,0 +1,19 @@
+<div class="card post-card" id="post-{{ post.id }}">
+    <div class="card-header post-header">
+        <h5 class="post-title">{{ post.title }}</h5>
+    </div>
+    <div class="card-body post-content" id="post-content-{{ post.id }}">
+        <p>{{ post.content }}</p>
+    </div>
+    <div class="card-footer post-footer">
+        <small>Published: {{ post.published }}</small>
+        <div class="post-interactions">
+            <form action="{% url 'mysocial:like_post' post.id %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="like-btn">Like</button>
+            </form>
+            <span class="like-count">{{ post.likes.count }} Likes</span>
+            <div class="show-more-btn" onclick="togglePostContent('{{ post.id }}')">Show More</div>
+        </div>
+    </div>
+</div>
