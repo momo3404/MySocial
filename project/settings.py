@@ -146,7 +146,3 @@ REST_FRAMEWORK = {
 django_on_heroku.settings(locals()) # bottom of the file
 
 # GITHUB_TOKEN = config('GITHUB_TOKEN')
-
-# For Media Files
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
