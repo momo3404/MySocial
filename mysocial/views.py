@@ -121,12 +121,12 @@ def process_follow_request(request, author_id):
 
             follow_request.delete()
 
-            return HttpResponseRedirect(reverse('mysocial:follow_requests', args=[author_id]))
+            return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
 
         except FollowRequest.DoesNotExist:
-            return HttpResponseRedirect(reverse('mysocial:follow_requests', args=[author_id]))
+            return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
 
-    return HttpResponseRedirect(reverse('mysocial:follow_requests', args=[author_id]))
+    return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
 
 class CustomLoginView(LoginView):
     template_name = 'base/registration/login.html'
