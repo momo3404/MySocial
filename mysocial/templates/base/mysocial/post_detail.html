@@ -1,19 +1,101 @@
-<div class="card post-card" id="post-{{ post.id }}">
-    <div class="card-header post-header">
-        <h5 class="post-title">{{ post.title }}</h5>
+<html>
+<head>
+    <title>Post</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .center {
+            margin: auto;
+            width: 60%;
+            padding: 10px;
+        }
+        .post-card {
+            margin-bottom: 20px;
+        }
+        .post-header, .post-footer {
+            background-color: #f8f9fa;
+            padding: 10px;
+        }
+        .post-content {
+            padding: 20px;
+        }
+        .form-section {
+            display: none; /* Initially hide the form */
+            background-color: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .btn-edit {
+            background-color: #007bff; /* Bootstrap primary blue */
+            color: white;
+        }
+        .btn-edit:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+            color: white;
+        }
+    </style>
+</head>
+
+<nav class="navbar navbar-expand-lg navbar-light" style="background-color: #DBB630;">
+    <div class="container-fluid">
+      <a class="navbar-brand" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 150%;" href="{% url 'mysocial:login' %}">MySocial</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNavDropdown">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:public_profile' author.authorId %}">Profile</a>
+            </li>
+          </ul>
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:inbox' author.authorId %}">Inbox</a>
+            </li>
+          </ul>
+        <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:posts_by_author' author.authorId %}">Stream</a>
+            </li>
+          </ul>
+      </div>
     </div>
-    <div class="card-body post-content" id="post-content-{{ post.id }}">
-        <p>{{ post.content }}</p>
-    </div>
-    <div class="card-footer post-footer">
-        <small>Published: {{ post.published }}</small>
-        <div class="post-interactions">
-            <form action="{% url 'mysocial:like_post' post.id %}" method="post">
-                {% csrf_token %}
-                <button type="submit" class="like-btn">Like</button>
-            </form>
-            <span class="like-count">{{ post.likes.count }} Likes</span>
-            <div class="show-more-btn" onclick="togglePostContent('{{ post.id }}')">Show More</div>
+</nav>
+
+<body class="h-100 gradient-form" style="background-color: #01579B;">
+    <div class="text-center" style="color: #faFafa;">
+    <div class="center">
+    <div class="posts-container">
+        <div class="card post-card" id="post-{{ post.id }}">
+            <div class="card-header post-header">
+                <h5 class="post-title">{{ post.title }}</h5>
+            </div>
+            <h6>By: <a href="{% url 'mysocial:public_profile' post.author.authorId %}" >
+                {{ post.author.displayName }}
+                </a>
+            <!-- Edit Button -->
+            {% if author.authorId == post.author.authorId %}
+            <button style = "margin-left: 10px;" onclick="editPost('{{ post.id }}', '{{ post.title|escapejs }}', '{{ post.content|escapejs }}');" class="btn btn-sm btn-edit">Edit</button>
+            {% endif %}
+            </h6>
+            <div class="card-body post-content" id="post-content-{{ post.id }}">
+                <p>{{ post.content }}</p>
+            </div>
+            <div class="card-footer post-footer">
+                <small>Published: {{ post.published }}</small>
+                <div class="post-interactions">
+                    <div class="post-interactions">
+                        <form action="{% url 'mysocial:like_post' post.postId %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-edit">Like</button>
+                        </form>
+                        <span class="like-count">{{ post.likesCount }} Likes</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+    </div>
+    </div>
+</body>
