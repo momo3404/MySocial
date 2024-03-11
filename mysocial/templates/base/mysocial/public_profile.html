@@ -43,7 +43,7 @@
     {% if user.is_authenticated %}
         <div class="text-center">
             {% if viewing_own_profile %}
-                <a href="{% url 'mysocial:follow_requests' author.authorId %}" class="btn btn-info">Follow Requests</a>
+                <a href="{% url 'mysocial:inbox' author.authorId %}" class="btn btn-info">Follow Requests</a>
             {% else %}
                 {% if is_following %}
                     <form action="{% url 'mysocial:unfollow' author.authorId %}" method="post">
