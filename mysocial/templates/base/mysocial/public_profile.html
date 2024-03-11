@@ -38,6 +38,11 @@
             margin-top: 5px;
         }
 
+        img{
+            width: 100px; 
+            height: auto;
+        }
+
     </style>
 </head>
 
@@ -71,7 +76,17 @@
     <div class="text-center">
         <div class="center" style="color: #FAFAFA;"> 
         <h1>{{ author.displayName }}</h1>
-        <a href="url" style="color:#FFD600;">Profile URL: {{ author.url }} </a>
+        {% if author.profileImage %}
+        <img src="{{ author.profileImage.url }}" alt="Profile image">
+        {% endif %}
+        {% if not author.profileImage %}
+        <!-- <img src="/static/images/default-profile-pic.jpeg" alt="Profile image"> -->
+        <img src="/media/profile_images/human_WgyhwIz.jpeg" alt="Profile image">
+        {% endif %}
+        {% if author.bio %}
+        <p><strong>Bio:</strong> {{ author.bio }}</p>
+        {% endif %}
+        <a href={author.url} style="color:#FFD600;">Profile URL: {{ author.url }} </a>
         </div>
         {% if viewing_own_profile %}
             <a href="{% url 'mysocial:edit_display_name' author.authorId %}" class="btn btn-primary">Edit Profile</a>
