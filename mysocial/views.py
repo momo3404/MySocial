@@ -229,18 +229,35 @@ def public_profile(request, author_id):
     return render(request, 'base/mysocial/public_profile.html', context)
 
 
-def edit_display_name(request, author_id):
+def edit_profile(request, author_id):
     author = get_object_or_404(Author, authorId=author_id)
 
-    if request.method == 'POST':
-        new_display_name = request.POST.get('displayName')
-        author.displayName = new_display_name
-        author.save()
-        return redirect('mysocial:public_profile', author_id=author_id)
+    # Check if the request user is authenticated and matches the author
+    if request.user.is_authenticated and request.user.author.authorId == author_id:
 
-    return render(request, 'base/mysocial/edit_display_name.html', {'author': author})
-    
-    
+        if request.method == 'POST':
+            new_display_name = request.POST.get('displayName')
+            new_bio = request.POST.get('bio')
+            new_profileImage = request.FILES.get('profileImage')
+            
+            # Update the display name
+            author.displayName = new_display_name
+            
+            # Update the bio
+            author.bio = new_bio
+            
+            # Update the profile image if provided
+            if new_profileImage:
+                author.profileImage = new_profileImage
+            
+            author.save()
+            return redirect('mysocial:public_profile', author_id=author_id)
+
+        return render(request, 'base/mysocial/edit_profile.html', {'author': author})
+
+    else:
+        return HttpResponse('Unauthorized Access', status=401)
+
 class NodeInfoAPIView(APIView):
     def get(self, request, node_name):
         try:

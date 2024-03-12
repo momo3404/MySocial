@@ -20,7 +20,7 @@ urlpatterns = [
     path('authors/<uuid:authorId>/inbox/', views.inbox, name='inbox'),
 
     path('profile/<uuid:author_id>/', views.public_profile, name='public_profile'),
-    path('profile/<uuid:author_id>/edit_display_name/', views.edit_display_name, name='edit_display_name'),
+    path('profile/<uuid:author_id>/edit_profile/', views.edit_profile, name='edit_profile'),
     path('profile/<uuid:author_id>/follow/', views.follow, name='follow'),
     path('profile/<uuid:author_id>/unfollow/', views.unfollow, name='unfollow'),
     
