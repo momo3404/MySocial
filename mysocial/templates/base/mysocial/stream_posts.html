@@ -72,7 +72,7 @@
             <h1>Stream</h1>
             <!-- Form Section for Creating and Editing Posts -->
             <div id="postFormSection" class="form-section">
-                <h2 id="formTitle">Create New Post</h2>
+                <h2 id="formTitle" style="color: black;">Create New Post</h2>
                 <form id="postForm" action="{% url 'mysocial:posts_by_author' authorId=author.authorId %}" method="post">
                     {% csrf_token %}
                     <input type="hidden" id="postId" name="post_id" value=""> <!-- Hidden field for post ID (empty for new posts) -->
@@ -84,6 +84,11 @@
                         <label for="content" class="form-label">Content</label>
                         <textarea class="form-control" id="content" name="content" rows="3" required></textarea>
                     </div>
+                    <div class="mb-3 form-check" style="display: flex; justify-content: flex-start; align-items: center;">
+                        <input type="checkbox" class="form-check-input" id="markup" name="markup" style="margin-right: 10px;">
+                        <label class="form-check-label" for="markup" style="color: black;">Interpret as Markdown</label>
+                    </div>
+                    
                     <button type="submit" class="btn btn-primary">Submit</button>
                     <button type="button" class="btn btn-secondary" onclick="toggleForm();">Cancel</button>
                 </form>
