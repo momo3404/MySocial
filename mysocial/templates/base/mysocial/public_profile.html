@@ -88,7 +88,7 @@
         <a href={author.url} style="color:#FFD600;">Profile URL: {{ author.url }} </a>
         </div>
         {% if viewing_own_profile %}
-            <a href="{% url 'mysocial:edit_display_name' author.authorId %}" class="btn btn-primary">Edit Profile</a>
+            <a href="{% url 'mysocial:edit_profile' author.authorId %}" class="btn btn-primary">Edit Profile</a>
         {%endif%}
     </div>
 
