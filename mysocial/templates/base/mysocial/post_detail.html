@@ -91,6 +91,12 @@
                             <button type="submit" class="btn btn-sm btn-edit">Like</button>
                         </form>
                         <span class="like-count">{{ post.likesCount }} Likes</span>
+                        {% if author.authorId == post.author.authorId %}
+                        <form action="{% url 'mysocial:delete_post' post.postId %}" method="post">
+                            {% csrf_token %}
+                            <button style = "background-color: #E53935;"type="submit" class="btn btn-sm btn-edit">Delete</button>
+                        </form>
+                        {% endif %}
                     </div>
                 </div>
             </div>
