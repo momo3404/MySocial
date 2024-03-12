@@ -104,6 +104,7 @@
                         <!-- Edit Button -->
                         {% if author.authorId == post.author.authorId %}
                         <button style = "margin-left: 10px;" onclick="editPost('{{ post.id }}', '{{ post.title|escapejs }}', '{{ post.content|escapejs }}');" class="btn btn-sm btn-edit">Edit</button>
+                       
                         {% endif %}
                         </h6>
                     </div>
@@ -118,9 +119,17 @@
                                 <button type="submit" class="btn btn-sm btn-edit">Like</button>
                             </form>
                             <span class="like-count">{{ post.likesCount }} Likes</span>
+                            {% if author.authorId == post.author.authorId %}
+                                <form action="{% url 'mysocial:delete_post' post.postId %}" method="post">
+                                    {% csrf_token %}
+                                    <button style = "background-color: #E53935;"type="submit" class="btn btn-sm btn-edit">Delete</button>
+                                </form>
+                                {% endif %}
                         </div>
                     </div>
                 </div>
+
+                
                 {% endfor %}
             </div>
             <!-- Floating Action Button for New Post -->
@@ -152,6 +161,14 @@
             document.getElementById("content").value = content;
             toggleForm();
         }
+
+        // not currently being used
+        function deletePost(postId, authorId) {
+            const postElement = document.getElementById(`post-${postId}`);
+            postElement.remove();
+        }
+
+        
     </script>
 </body>
 </html>

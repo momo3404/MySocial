@@ -108,7 +108,6 @@ def inbox(request, authorId):
 @login_required
 @csrf_exempt  
 def process_follow_request(request, author_id):
-    print("Called")
     if request.method == 'POST':
         action = request.POST.get('action')
         request_id = request.POST.get('request_id')
@@ -403,6 +402,22 @@ def like_post(request, post_id):
         return HttpResponseRedirect(referer_url)
     else:
         return HttpResponseRedirect('/')
+    
+@login_required
+@require_POST
+def delete_post(request, post_id):
+    post = get_object_or_404(Post, postId=post_id)
+    
+    # Check if the requesting user is the author of the post
+    if request.user.author == post.author:
+        
+        # Delete the post
+        post.delete()
+        
+        
+        return HttpResponse('Post deleted', status=204)
+    else:
+        return HttpResponse('Forbidden', status=403)
 
     
 def fetch_github_activity(request):
