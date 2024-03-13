@@ -309,17 +309,34 @@ class PostListCreateView(View):
     template_name = 'base/mysocial/stream_posts.html'
 
     def get(self, request, authorId):
+        action = request.GET.get('action', 'all') 
         author = get_object_or_404(Author, authorId=authorId)
         posts = Post.objects.all().order_by('-published')
 
-        # Filter posts based on visibility for the current user
-        visible_posts = []
-        for post in posts:
-            if post.visibility == 'PUBLIC':
-                visible_posts.append(post)
-            elif post.visibility == 'PRIVATE':
-                if author.is_friend(post.author) or author == post.author:
+        if action == 'all':
+
+            # Filter posts based on visibility for the current user
+            visible_posts = []
+            for post in posts:
+                if post.visibility == 'PUBLIC':
                     visible_posts.append(post)
+                elif post.visibility == 'PRIVATE':
+                    if author.is_friend(post.author) or author == post.author:
+                        visible_posts.append(post)
+
+            visible_posts = [post for post in posts if post.visibility == 'PUBLIC' or (post.visibility == 'PRIVATE' and (author.is_friend(post.author) or author == post.author))]
+
+        elif action == 'followers':
+
+            # Filter posts based on visibility for the current user
+            visible_posts = []
+            for post in posts:
+                if post.visibility == 'PRIVATE':
+                    if author.is_friend(post.author) or author == post.author:
+                        visible_posts.append(post)
+
+            visible_posts = [post for post in posts if post.visibility == 'PRIVATE' and (author.is_friend(post.author) or author == post.author)]
+
 
         context = {
             'posts': visible_posts,
