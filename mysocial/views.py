@@ -335,7 +335,7 @@ class PostListCreateView(View):
                     if author.is_friend(post.author) or author == post.author:
                         visible_posts.append(post)
 
-            visible_posts = [post for post in posts if post.visibility == 'PRIVATE' and (author.is_friend(post.author) or author == post.author)]
+            visible_posts = [post for post in posts if author.is_friend(post.author) or author == post.author]
 
 
         context = {
