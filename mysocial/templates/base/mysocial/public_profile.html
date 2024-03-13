@@ -78,9 +78,8 @@
         <h1>{{ author.displayName }}</h1>
         {% if author.profileImage %}
         <img src="{{ author.profileImage.url }}" alt="Profile image">
-        {% endif %}
-        {% if not author.profileImage %}
-        <img src="/media/profile_images/human_WgyhwIz.jpeg" alt="Profile image">
+        {% else %}
+        <img src="static/images/profile_images/default-profile-pic.jpeg" alt="Profile image">
         {% endif %}
         {% if author.bio %}
         <p><strong>Bio:</strong> {{ author.bio }}</p>

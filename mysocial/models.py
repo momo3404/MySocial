@@ -18,6 +18,12 @@ class Author(models.Model):
     profileImage = models.ImageField(upload_to='static/images/profile_images', null=True, blank=True)
     bio = models.TextField(null=True, blank=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='author', null=True, blank=False) 
+    
+    def is_friend(self, other_user):
+        following = self.following.filter(follower=other_user).exists()
+
+        return following
+
 
     def __str__(self):
         return self.displayName
@@ -53,7 +59,11 @@ class Post(models.Model):
     likesCount = models.IntegerField(default=0)
     comments = models.URLField(max_length=URL, null=True)
     published = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    visibility = models.CharField(max_length=SHORT, default="PUBLIC", null=False)
+    VISIBILITY_CHOICES = [
+        ('PUBLIC', 'Public'),
+        ('PRIVATE', 'Private'),
+    ]
+    visibility = models.CharField(max_length=SHORT, choices=VISIBILITY_CHOICES, default="PUBLIC", null=False)
 
     def __str__(self):
         return self.title

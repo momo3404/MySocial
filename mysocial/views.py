@@ -13,6 +13,7 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Q
 import requests
 import uuid
 import json
@@ -308,10 +309,20 @@ class PostListCreateView(View):
     template_name = 'base/mysocial/stream_posts.html'
 
     def get(self, request, authorId):
-        posts = Post.objects.all().order_by('-published')
         author = get_object_or_404(Author, authorId=authorId)
+        posts = Post.objects.all().order_by('-published')
+
+        # Filter posts based on visibility for the current user
+        visible_posts = []
+        for post in posts:
+            if post.visibility == 'PUBLIC':
+                visible_posts.append(post)
+            elif post.visibility == 'PRIVATE':
+                if author.is_friend(post.author) or author == post.author:
+                    visible_posts.append(post)
+
         context = {
-            'posts': posts,
+            'posts': visible_posts,
             'author': author,
         }
         return render(request, self.template_name, context)
@@ -354,7 +365,10 @@ class PostDetailView(View):
     def get(self, request, authorId, post_id):
         post = get_object_or_404(Post, postId=post_id)
         author = get_object_or_404(Author, authorId=authorId)
-        context = {'post': post, 'author': author}
+
+        if post.visibility == 'PUBLIC' or (post.visibility == 'PRIVATE' and author.is_friend(post.author) or author == post.author):
+            context = {'post': post, 'author': author}
+        
         return render(request, 'base/mysocial/post_detail.html', context)
 
     def delete(self, request, authorId, post_id):
