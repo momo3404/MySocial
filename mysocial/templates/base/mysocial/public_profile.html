@@ -1,5 +1,8 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ author.displayName }}'s Profile</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <style>
@@ -14,20 +17,18 @@
 
         .post-card {
             width: 300px;
-            height: 200px;
             border: 4px solid #DBB630;
             margin: 10px;
-            overflow: hidden;
-            overflow: hidden; /* Hide the overflowing text */
-            text-overflow: ellipsis; /* Display an ellipsis (...) when text overflows */
         }
 
-        .post-content{
+        .post-content {
+            padding: 10px;
             max-height: 100px;
             overflow: hidden;
-            padding: 10px;
             transition: max-height 0.3s ease;
+            height: 700px;
         }
+
         .post-footer {
             padding: 10px;
         }
@@ -38,9 +39,14 @@
             margin-top: 5px;
         }
 
-        img{
-            width: 100px; 
+        img {
+            width: 100px;
             height: auto;
+        }
+
+        .expanded {
+            height: 400px !important;
+            width: 800px !important;
         }
 
     </style>
@@ -75,20 +81,20 @@
 <body class="h-100 gradient-form" style="background-color: #01579B;">
     <div class="text-center">
         <div class="center" style="color: #FAFAFA;"> 
-        <h1>{{ author.displayName }}</h1>
-        {% if author.profileImage %}
-        <img src="{{ author.profileImage.url }}" alt="Profile image">
-        {% else %}
-        <img src="static/images/profile_images/default-profile-pic.jpeg" alt="Profile image">
-        {% endif %}
-        {% if author.bio %}
-        <p><strong>Bio:</strong> {{ author.bio }}</p>
-        {% endif %}
-        <a href={author.url} style="color:#FFD600;">Profile URL: {{ author.url }} </a>
+            <h1>{{ author.displayName }}</h1>
+            {% if author.profileImage %}
+                <img src="{{ author.profileImage.url }}" alt="Profile image">
+            {% else %}
+                <img src="static/images/profile_images/default-profile-pic.jpeg" alt="Profile image">
+            {% endif %}
+            {% if author.bio %}
+                <p><strong>Bio:</strong> {{ author.bio }}</p>
+            {% endif %}
+            <a href="{{ author.url }}" style="color:#FFD600;">Profile URL: {{ author.url }} </a>
         </div>
         {% if viewing_own_profile %}
             <a href="{% url 'mysocial:edit_profile' author.authorId %}" class="btn btn-primary">Edit Profile</a>
-        {%endif%}
+        {% endif %}
     </div>
 
     {% if user.is_authenticated %}
@@ -117,27 +123,27 @@
         <h2>Posts</h2>
         <div class="posts-container">
             {% for post in posts %}
-            <div class="card post-card" id="post-{{ post.id }}">
-                <div class="card-header post-header">
-                    <h5 class="post-title">{{ post.title }}</h5>
-                </div>
-                <div class="card-body post-content" id="post-content-{{ post.postId }}">
-                    <p>{{ post.content }}</p>
-                </div>
-                <div class="card-footer post-footer">
-                    <small>Published: {{ post.published }}</small>
-                    <div class="post-interactions">
-                        <form action="{% url 'mysocial:like_post' post.postId %}" method="post">
-                            {% csrf_token %}
-                            <button type="submit" class="like-btn">Like</button>
-                        </form>
-                        <span class="like-count">{{ post.likesCount }} Likes</span>
-                        <div class="show-more-btn" onclick="togglePostContent('{{ post.id }}')">Show More</div>
+                <div class="card post-card" id="post-content-{{ post.id }}">
+                    <div class="card-header post-header">
+                        <h5 class="post-title">{{ post.title }}</h5>
+                    </div>
+                    <div class="card-body post-content" id="post-content-{{ post.postId }}">
+                        <p>{{ post.content }}</p>
+                    </div>
+                    <div class="card-footer post-footer">
+                        <small>Published: {{ post.published }}</small>
+                        <div class="post-interactions">
+                            <form action="{% url 'mysocial:like_post' post.postId %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="like-btn">Like</button>
+                            </form>
+                            <span class="like-count">{{ post.likesCount }} Likes</span>
+                            <div class="show-more-btn" onclick="togglePostContent('{{ post.id }}')">Show More</div>
+                        </div>
                     </div>
                 </div>
-            </div>
             {% empty %}
-            <p>No posts to display.</p>
+                <p>No posts to display.</p>
             {% endfor %}
         </div>
     </div>
@@ -145,19 +151,17 @@
     <script>
         function togglePostContent(postId) {
             const postContent = document.getElementById(`post-content-${postId}`);
-            const showMoreBtn = document.querySelector(`#post-${postId} .show-more-btn`);
-    
-            if (postContent.style.maxHeight) {
-                // Content is currently expanded, so collapse it
-                postContent.style.maxHeight = null;
+            const showMoreBtn = document.querySelector(`#post-content-${postId} .show-more-btn`);
+
+            if (postContent.classList.contains('expanded')) {
+                postContent.classList.remove('expanded');
+                postContent.style.maxHeight = '400px'; // Collapsing the post
                 showMoreBtn.innerText = 'Show More';
             } else {
-                // Content is currently collapsed, so expand it
-                postContent.style.maxHeight = postContent.scrollHeight + 'px';
+                postContent.classList.add('expanded');
                 showMoreBtn.innerText = 'Show Less';
             }
         }
     </script>
-
 </body>
 </html>
