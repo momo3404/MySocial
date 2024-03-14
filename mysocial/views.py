@@ -382,9 +382,10 @@ class PostDetailView(View):
     def get(self, request, authorId, post_id):
         post = get_object_or_404(Post, postId=post_id)
         author = get_object_or_404(Author, authorId=authorId)
+        comments = Comment.objects.filter(post=post).order_by('-published')
 
         if post.visibility == 'PUBLIC' or (post.visibility == 'PRIVATE' and author.is_friend(post.author) or author == post.author):
-            context = {'post': post, 'author': author}
+            context = {'post': post, 'author': author, 'comments': comments}
         
         return render(request, 'base/mysocial/post_detail.html', context)
 
@@ -463,3 +464,23 @@ def fetch_github_activity(request):
     else:
         return HttpResponse("Failed to fetch GitHub activity", status=500)
 
+
+@login_required
+def comments_post(request, authorId, post_id):
+    if request.method == 'POST':
+        post = get_object_or_404(Post, postId=post_id)
+        comment_content = request.POST.get('comment')
+
+        if not comment_content.strip():
+            return redirect('mysocial:post_detail', authorId=authorId, post_id=post_id)
+
+        Comment.objects.create(
+            author=request.user.author, 
+            post=post,
+            comment=comment_content,
+            contentType='text/plain',
+        )
+
+        return redirect('mysocial:post_detail', authorId=authorId, post_id=post_id)
+    
+    return HttpResponse(status=405)

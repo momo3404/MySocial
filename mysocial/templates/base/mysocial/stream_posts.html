@@ -126,21 +126,43 @@
                     <div class="card-body post-content">
                         <p>{{ post.content }}</p>
                     </div>
-                    <div class="card-footer post-footer">
-                        <small>Published: {{ post.published }}</small>
-                        <div class="post-interactions">
-                            <form action="{% url 'mysocial:like_post' post.postId %}" method="post">
+                    <div class="card-footer post-footer d-flex justify-content-between align-items-center">
+                        <div class="post-interactions d-flex align-items-center">
+                            <form action="{% url 'mysocial:like_post' post.postId %}" method="post" class="me-2">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-sm btn-edit">Like</button>
                             </form>
-                            <span class="like-count">{{ post.likesCount }} Likes</span>
                             {% if author.authorId == post.author.authorId %}
-                                <form action="{% url 'mysocial:delete_post' post.postId %}" method="post">
-                                    {% csrf_token %}
-                                    <button style = "background-color: #E53935;"type="submit" class="btn btn-sm btn-edit">Delete</button>
-                                </form>
-                                {% endif %}
+                            <form action="{% url 'mysocial:delete_post' post.postId %}" method="post" class="me-2">
+                                {% csrf_token %}
+                                <button style="background-color: #E53935;" type="submit" class="btn btn-sm btn-edit">Delete</button>
+                            </form>
+                            {% endif %}
+                            <span class="like-count me-2">{{ post.likesCount }} Likes</span>
                         </div>
+                        <small class="text-muted">Published: {{ post.published }}</small>
+                    </div>
+
+                    <div class="comments-section">
+                        <h5>Comments:</h5>
+                        {% for comment in comments %}
+                            <div class="card mb-2">
+                                <div class="card-body">
+                                    <h6 class="card-subtitle mb-2 text-muted">{{ comment.author.displayName }} - {{ comment.published }}</h6>
+                                    <p class="card-text">{{ comment.comment }}</p>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <p>No comments yet.</p>
+                        {% endfor %}
+                    </div>
+        
+                    <div class="comment-form">
+                        <form action="{% url 'mysocial:comment_post' post.author.authorId post.postId %}" method="post">
+                            {% csrf_token %}
+                            <textarea class="form-control" name="comment" placeholder="Write your comment here..." required></textarea>
+                            <input type="submit" class="btn btn-primary mt-2" value="Post Comment">
+                        </form>
                     </div>
                 </div>
 
