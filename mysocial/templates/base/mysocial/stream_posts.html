@@ -92,7 +92,12 @@
                     </div>
                     <div class="mb-3">
                         <label for="content" class="form-label">Content</label>
-                        <textarea class="form-control" id="content" name="content" rows="3" required></textarea>
+                        <textarea class="form-control" id="content" name="content" rows="3"></textarea>
+                    </div>
+                    <!-- Add File Input for Image Upload -->
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Image</label>
+                        <input type="file" class="form-control" id="image" name="image">
                     </div>
                     <div class="mb-3 form-check" style="display: flex; justify-content: flex-start; align-items: center;">
                         <input type="checkbox" class="form-check-input" id="markup" name="markup" style="margin-right: 10px;">
@@ -151,7 +156,13 @@
                         </h6>
                     </div>
                     <div class="card-body post-content">
-                        <p>{{ post.content }}</p>
+                        {% if post.image %}
+                            <!-- Image -->
+                            <img src="{{ post.image.url }}" alt="{{ post.title }}" style="max-width: 100px;">
+                        {% else %}
+                            <!-- Text or Commonmark Post -->
+                            <p>{{ post.content }}</p>
+                        {% endif %}
                     </div>
                     <div class="card-footer post-footer d-flex justify-content-between align-items-center">
                         <div class="post-interactions d-flex align-items-center">

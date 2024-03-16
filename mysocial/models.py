@@ -15,7 +15,7 @@ class Author(models.Model):
     host = models.URLField(max_length=URL, null=True)
     displayName = models.CharField(max_length=SHORT, null=True)
     github = models.URLField(max_length=URL, blank=True, null=True)
-    profileImage = models.ImageField(upload_to='static/images/profile_images', null=True, blank=True)
+    profileImage = models.ImageField(upload_to='static/images/profile_images/', null=True, blank=True)
     bio = models.TextField(null=True, blank=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='author', null=True, blank=False) 
     
@@ -51,15 +51,15 @@ class Post(models.Model):
         ('IMAGE', 'Image'),
         ('COMMONMARK', 'Commonmark')
     ]
-    type = models.CharField(max_length=SHORT, default="post", choices=TYPE_CHOICES)
     title =  models.CharField(max_length=MEDIUM, null=True)
     postId = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     url = models.URLField(max_length=URL, unique=True, null=True)
     source = models.URLField(max_length=URL, null=True)
     origin =  models.URLField(max_length=URL, null=True)
     description = models.TextField(max_length=CONTENT, null=True, blank=True)
-    content_type = models.CharField(max_length=SHORT, null=True)
+    content_type = models.CharField(max_length=SHORT, default="post", choices=TYPE_CHOICES, null=True)
     content = models.TextField(max_length=CONTENT, null=True, blank=True)
+    image = models.ImageField(upload_to='static/images/posts_images/', null=True, blank=True)
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='author', null=True, blank=True)
     count = models.IntegerField(default=0)
     likesCount = models.IntegerField(default=0)
