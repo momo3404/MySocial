@@ -51,6 +51,7 @@ class Post(models.Model):
         ('IMAGE', 'Image'),
         ('COMMONMARK', 'Commonmark')
     ]
+    type = models.CharField(max_length=SHORT, default="post", choices=TYPE_CHOICES)
     title =  models.CharField(max_length=MEDIUM, null=True)
     postId = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     url = models.URLField(max_length=URL, unique=True, null=True)
