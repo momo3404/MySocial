@@ -26,6 +26,7 @@ urlpatterns = [
     
     path('process_follow_request/<uuid:author_id>/', views.process_follow_request, name='process_follow_request'),
     path('posts/<uuid:post_id>/like/', views.like_post, name='like_post'),
+    path('posts/<uuid:post_id>/share/', views.share_post, name='share_post'),
     path('posts/<uuid:post_id>/delete/', views.delete_post, name='delete_post'),
 
     path('github-activity/', views.fetch_github_activity, name='github-activity'),

@@ -125,6 +125,11 @@
             {% for post in posts %}
                 <div class="card post-card" id="post-content-{{ post.id }}">
                     <div class="card-header post-header">
+                        {% if post.source %}
+                        <div style="font-size: 12px; color: #555; margin-bottom: 5px;">
+                            {{ post.author.displayName }} shared this post
+                        </div>
+                        {% endif %}
                         <h5 class="post-title">{{ post.title }}</h5>
                     </div>
                     <div class="card-body post-content" id="post-content-{{ post.postId }}">
