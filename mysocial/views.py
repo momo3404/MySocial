@@ -348,7 +348,11 @@ class PostListCreateView(View):
         post_id = request.POST.get('post_id')
         title = request.POST.get('title')
         content = request.POST.get('content')
+        post_type = request.POST.get('type') 
         author = get_object_or_404(Author, authorId=authorId)
+
+        if post_type == 'IMAGE':
+            image = request.FILES.get('image')
 
         if post_id:
             # Update existing post
@@ -358,8 +362,8 @@ class PostListCreateView(View):
             post.save()
         else:
             # Create new post
-            if title and content:
-                new_post = Post.objects.create(title=title, content=content, author=author)
+            if title and (content or image):
+                new_post = Post.objects.create(title=title, content=content, author=author, type=post_type, image=image )
                 post_url = reverse('mysocial:post_detail', kwargs={'authorId': authorId, 'post_id': new_post.postId})
                 new_post.url = request.build_absolute_uri(post_url)
                 new_post.save()
