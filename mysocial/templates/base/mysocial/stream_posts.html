@@ -108,14 +108,41 @@
                 {% for post in posts %}
                 <div class="card post-card" id="post-{{ post.id }}">
                     <div class="card-header post-header">
+                        <!-- Display message if post.source exists -->
+                        {% if post.source %}
+                        <div style="font-size: 12px; color: #555; margin-bottom: 5px;">
+                            This post was shared by {{ post.author.displayName }}
+                        </div>
+                        {% endif %}
                         <h5 class="post-title">
                             <a href="{% url 'mysocial:post_detail' authorId=post.author.authorId post_id=post.postId %}">
                                 {{ post.title }}
                             </a>
                         </h5>
-                        <h6>By: <a href="{% url 'mysocial:public_profile' post.author.authorId %}" >
+                        <h6 id="author-info-{{ forloop.counter }}">By: <a href="{% url 'mysocial:public_profile' post.author.authorId %}">
                             {{ post.author.displayName }}
                             </a>
+                        </h6>
+                        {% if post.source %}
+                        <script>
+                            // Update author information if source exists
+                            sourceUrl = "{{ post.source }}";
+                            authorElement = document.getElementById('author-info-{{ forloop.counter }}');
+                            updateAuthorInfo(sourceUrl, authorElement);
+                            
+                            async function updateAuthorInfo(sourceUrl, authorElement) {
+                                urlParts = sourceUrl.split('/');
+                                authorId = urlParts[urlParts.length - 3]; 
+                                console.log(authorElement);
+                                const response = await fetch(`/mysocial/authors/${authorId}`)
+                                let data = await response.json()
+                                if (data.authorId !== null || data.authorId !== undefined) {
+                                    authorElement.innerHTML = `By: <a href="/mysocial/profile/${data.authorId}">${data.displayName}</a>`;
+                                }
+           
+                            }
+                        </script>
+                        {% endif %}
                         <!-- Edit Button -->
                         {% if author.authorId == post.author.authorId %}
                         <button style = "margin-left: 10px;" onclick="editPost('{{ post.id }}', '{{ post.title|escapejs }}', '{{ post.content|escapejs }}');" class="btn btn-sm btn-edit">Edit</button>
@@ -132,6 +159,10 @@
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-sm btn-edit">Like</button>
                             </form>
+                            <form action="{% url 'mysocial:share_post' post.postId %}" method="post" class="me-2">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-edit">Share</button>
+                            </form>
                             {% if author.authorId == post.author.authorId %}
                             <form action="{% url 'mysocial:delete_post' post.postId %}" method="post" class="me-2">
                                 {% csrf_token %}
@@ -144,25 +175,7 @@
                     </div>
 
                     <div class="comments-section">
-                        <h5>Comments:</h5>
-                        {% for comment in comments %}
-                            <div class="card mb-2">
-                                <div class="card-body">
-                                    <h6 class="card-subtitle mb-2 text-muted">{{ comment.author.displayName }} - {{ comment.published }}</h6>
-                                    <p class="card-text">{{ comment.comment }}</p>
-                                </div>
-                            </div>
-                        {% empty %}
-                            <p>No comments yet.</p>
-                        {% endfor %}
-                    </div>
-        
-                    <div class="comment-form">
-                        <form action="{% url 'mysocial:comment_post' post.author.authorId post.postId %}" method="post">
-                            {% csrf_token %}
-                            <textarea class="form-control" name="comment" placeholder="Write your comment here..." required></textarea>
-                            <input type="submit" class="btn btn-primary mt-2" value="Post Comment">
-                        </form>
+                        <a href="{% url 'mysocial:post_detail' authorId=post.author.authorId post_id=post.postId %}" class="btn btn-sm btn-primary">View Comments</a>
                     </div>
                 </div>
 

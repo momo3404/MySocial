@@ -21,8 +21,9 @@ class Author(models.Model):
     
     def is_friend(self, other_user):
         following = self.following.filter(follower=other_user).exists()
+        followed_by = other_user.following.filter(follower=self).exists()
 
-        return following
+        return following and followed_by
 
 
     def __str__(self):

@@ -14,6 +14,7 @@ from django.http import HttpResponseRedirect
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
+from django.http import JsonResponse
 import requests
 import uuid
 import json
@@ -362,6 +363,7 @@ class PostListCreateView(View):
                 new_post = Post.objects.create(title=title, content=content, author=author)
                 post_url = reverse('mysocial:post_detail', kwargs={'authorId': authorId, 'post_id': new_post.postId})
                 new_post.url = request.build_absolute_uri(post_url)
+                new_post.origin = request.build_absolute_uri(post_url)
                 new_post.save()
             else:
                 # Handle missing title or content for new post scenario
@@ -434,6 +436,37 @@ def like_post(request, post_id):
         return HttpResponseRedirect(referer_url)
     else:
         return HttpResponseRedirect('/')
+
+@login_required
+@require_POST
+def share_post(request, post_id):
+    post = get_object_or_404(Post, postId=post_id)
+    new_postId = uuid.uuid4()
+    post_url = reverse('mysocial:post_detail', kwargs={'authorId': request.user.author.authorId, 'post_id': new_postId})
+
+    Post.objects.create(
+        type=post.type,
+        title=post.title,
+        postId=new_postId,
+        url=request.build_absolute_uri(post_url),
+        source=post.origin,
+        origin=request.build_absolute_uri(post_url),
+        description=post.description,
+        content_type=post.content_type,
+        content=post.content,
+        author=request.user.author,  # Change the author to the current user
+        count=post.count,
+        likesCount=post.likesCount,
+        comments=post.comments,
+        published=post.published,
+        visibility=post.visibility,
+    )
+
+    referer_url = request.META.get('HTTP_REFERER')
+    if referer_url:
+        return HttpResponseRedirect(referer_url)
+    else:
+        return HttpResponseRedirect('/')
     
 @login_required
 @require_POST
@@ -467,8 +500,29 @@ def fetch_github_activity(request):
 
 @login_required
 def comments_post(request, authorId, post_id):
+    post = get_object_or_404(Post, postId=post_id)
+    
+    if request.method == 'GET':
+        comments = Comment.objects.filter(post=post).order_by('-published')
+        comments_data = [{
+            "type": "comment",
+            "author": {
+                "id": str(comment.author.authorId),
+                "displayName": comment.author.displayName,
+                "profileImage": comment.author.profileImage.url if comment.author.profileImage else None,
+            },
+            "comment": comment.comment,
+            "contentType": comment.contentType,
+            "published": comment.published.isoformat(),
+            "id": str(comment.commentId),
+        } for comment in comments]
+
+        return JsonResponse({
+            "type": "comments",
+            "comments": comments_data,
+        })
+    
     if request.method == 'POST':
-        post = get_object_or_404(Post, postId=post_id)
         comment_content = request.POST.get('comment')
 
         if not comment_content.strip():
