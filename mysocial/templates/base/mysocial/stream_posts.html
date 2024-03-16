@@ -153,25 +153,29 @@
                     <div class="card-body post-content">
                         <p>{{ post.content }}</p>
                     </div>
-                    <div class="card-footer post-footer">
-                        <small>Published: {{ post.published }}</small>
-                        <div class="post-interactions">
-                            <form action="{% url 'mysocial:like_post' post.postId %}" method="post" style="display: inline-block;">
+                    <div class="card-footer post-footer d-flex justify-content-between align-items-center">
+                        <div class="post-interactions d-flex align-items-center">
+                            <form action="{% url 'mysocial:like_post' post.postId %}" method="post" class="me-2">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-sm btn-edit">Like</button>
                             </form>
-                            <form action="{% url 'mysocial:share_post' post.postId %}" method="post" style="display: inline-block;">
+                            <form action="{% url 'mysocial:share_post' post.postId %}" method="post" class="me-2">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-sm btn-edit">Share</button>
                             </form>
-                            <span class="like-count">{{ post.likesCount }} Likes</span>
                             {% if author.authorId == post.author.authorId %}
-                                <form action="{% url 'mysocial:delete_post' post.postId %}" method="post">
-                                    {% csrf_token %}
-                                    <button style = "background-color: #E53935;"type="submit" class="btn btn-sm btn-edit">Delete</button>
-                                </form>
-                                {% endif %}
+                            <form action="{% url 'mysocial:delete_post' post.postId %}" method="post" class="me-2">
+                                {% csrf_token %}
+                                <button style="background-color: #E53935;" type="submit" class="btn btn-sm btn-edit">Delete</button>
+                            </form>
+                            {% endif %}
+                            <span class="like-count me-2">{{ post.likesCount }} Likes</span>
                         </div>
+                        <small class="text-muted">Published: {{ post.published }}</small>
+                    </div>
+
+                    <div class="comments-section">
+                        <a href="{% url 'mysocial:post_detail' authorId=post.author.authorId post_id=post.postId %}" class="btn btn-sm btn-primary">View Comments</a>
                     </div>
                 </div>
 
