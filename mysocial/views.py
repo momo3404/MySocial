@@ -19,6 +19,7 @@ import requests
 import uuid
 import json
 import urllib
+from django.core.paginator import Paginator
 
 from decouple import config
 
@@ -85,7 +86,24 @@ def follow(request, author_id):
     user_author = request.user.author
     target_author = Author.objects.get(authorId=author_id)
     if not FollowRequest.objects.filter(actor=user_author, object=target_author).exists():
-        FollowRequest.objects.create(actor=user_author, object=target_author, summary="Follow request")
+        new_request = FollowRequest.objects.create(actor=user_author, object=target_author, summary="Follow request")
+        
+        actor_data = AuthorSerializer(user_author).data
+        object_data = AuthorSerializer(target_author).data
+
+        inbox_item = {
+            "type": "Follow",
+            "summary": f"{actor_data['displayName']} wants to follow {object_data['displayName']}",
+            "actor": actor_data,
+            "object": object_data,
+        }
+
+        Inbox.objects.create(
+            author=target_author,
+            inbox_item=json.dumps(inbox_item)
+        )
+        print(json.dumps(inbox_item))
+        
     return redirect('mysocial:public_profile', author_id=author_id)
 
 @login_required
@@ -97,31 +115,87 @@ def unfollow(request, author_id):
     return redirect('mysocial:public_profile', author_id=author_id)
 
 @login_required
-def inbox(request, authorId):
-    try:
-        user_author = request.user.author
-        if str(user_author.authorId) != str(authorId):
-            raise Http404("Access denied!")
+def inbox(request, author_id):
+    author = get_object_or_404(Author, authorId=author_id)
 
-        follow_requests = FollowRequest.objects.filter(object=user_author)
-        return render(request, 'base/mysocial/follow_requests.html', {'author': user_author,'follow_requests': follow_requests})
-    except Author.DoesNotExist:
-        raise Http404("Author not found!")
+    if request.user.author.authorId != author_id and not request.user.is_superuser:
+        return render(request, 'error_page.html', {'message': 'You do not have permission to view this inbox.'})
+
+    inbox_items = Inbox.objects.filter(author=author).order_by('-timestamp')
+    processed_inbox_items = []
+    if(inbox_items):
+        processed_inbox_items = [json.loads(item.inbox_item) for item in inbox_items]
+
+    context = {
+        'author': author,
+        'inbox_items': processed_inbox_items,
+    }
+
+    return render(request, 'base/mysocial/inbox.html', context)
+
+class InboxView(APIView):
+    def get_author(self, authorId):
+        try:
+            return Author.objects.get(authorId=authorId)
+        except Author.DoesNotExist:
+            raise Http404("Author not found")
+
+    def get(self, request, authorId, format=None):
+        author = self.get_author(authorId)
+        inbox_items = Inbox.objects.filter(author=author).order_by('-inbox_item__published')
+        paginator = Paginator(inbox_items, 10)  
+        page_number = request.query_params.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        items = [json.loads(item.inbox_item) for item in page_obj]
+
+        return Response({
+            "type": "inbox",
+            "author": str(author.url),
+            "items": items
+        })
+
+    def post(self, request, authorId, format=None):
+        author = self.get_author(authorId)
+        data = request.data
+
+        if data.get('type') in ["post", "follow", "Like", "comment"]:
+            inbox_item = Inbox(author=author, inbox_item=json.dumps(data))
+            inbox_item.save()
+            return Response(status=status.HTTP_201_CREATED)
+
+        return Response({"detail": "Invalid data type for inbox."}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, authorId, format=None):
+        author = self.get_author(authorId)
+        Inbox.objects.filter(author=author).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 @login_required
 @csrf_exempt  
-def process_follow_request(request, author_id):
+def process_follow_request(request):
+    def get_author(authorId):
+        try:
+            return Author.objects.get(authorId=authorId)
+        except Author.DoesNotExist:
+            print(authorId)
+            raise Http404("Author not found")
+    
     if request.method == 'POST':
         action = request.POST.get('action')
-        request_id = request.POST.get('request_id')
+        author_id  = request.POST.get('object_id')
+        actor = get_author(request.POST.get('actor_id'))
+        object = get_author(request.POST.get('object_id'))
 
         try:
-            follow_request = FollowRequest.objects.get(id=request_id)
+            follow_requests = FollowRequest.objects.filter(actor=actor, object=object)
 
-            if action == 'approve':
-                Follower.objects.create(author=follow_request.object, follower=follow_request.actor)
-
-            follow_request.delete()
+            if action == "approve":
+                for follow_request in follow_requests:
+                    Follower.objects.create(author=follow_request.object, follower=follow_request.actor)
+            else:
+                for follow_request in follow_requests:
+                    follow_request.delete()
 
             return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
 
@@ -410,8 +484,38 @@ class PostListCreateView(View):
                 new_post.url = request.build_absolute_uri(post_url)
                 new_post.origin = request.build_absolute_uri(post_url)
                 new_post.save()
+                
+                inbox_item = {
+                    "type": "post",
+                    "title": new_post.title,
+                    "id": new_post.url,
+                    "source": new_post.source,
+                    "origin": new_post.origin,
+                    "description": new_post.description or "",
+                    "contentType": "text/plain",  
+                    "content": new_post.content,
+                    "author": {
+                        "type": "author",
+                        "id": str(author.authorId),
+                        "host": request.get_host(),
+                        "displayName": author.displayName,
+                        "url": author.url,  
+                        "github": author.github,  
+                        "profileImage": author.profileImage.url if author.profileImage else None
+                    },
+                    "comments": new_post.url + "/comments", 
+                    "published": new_post.published.isoformat(),
+                    "visibility": new_post.visibility
+                }
+                
+                followers = Follower.objects.filter(author=author)
+                for relation in followers:
+                    Inbox.objects.create(
+                        author=relation.follower,
+                        inbox_item=json.dumps(inbox_item)
+                    )
+                
             else:
-                # Handle missing title or content for new post scenario
                 posts = Post.objects.all().order_by('-published')
                 context = {
                     'posts': posts,
@@ -471,6 +575,20 @@ def like_post(request, post_id):
         Like.objects.create(author=user_author, object_url=post.url, summary=f"{user_author.displayName} Likes your post")
         post.likesCount += 1
         post.save()
+        
+        author_data = AuthorSerializer(user_author).data
+
+        inbox_item = {
+            "summary": f"{user_author.displayName} Likes your post '{post.title}'",
+            "type": "Like",
+            "author": author_data,
+            "object": post.url
+        }
+
+        Inbox.objects.create(
+            author=post.author,
+            inbox_item=json.dumps(inbox_item)
+        )
     else:
         existing.delete()
         post.likesCount -= 1
@@ -485,11 +603,19 @@ def like_post(request, post_id):
 @login_required
 @require_POST
 def share_post(request, post_id):
+    def get_author(authorId):
+        try:
+            return Author.objects.get(authorId=authorId)
+        except Author.DoesNotExist:
+            print(authorId)
+            raise Http404("Author not found")
+        
     post = get_object_or_404(Post, postId=post_id)
+    author = get_author(request.user.author.authorId)
     new_postId = uuid.uuid4()
     post_url = reverse('mysocial:post_detail', kwargs={'authorId': request.user.author.authorId, 'post_id': new_postId})
 
-    Post.objects.create(
+    new_post = Post.objects.create(
         type=post.type,
         title=post.title,
         postId=new_postId,
@@ -506,6 +632,37 @@ def share_post(request, post_id):
         published=post.published,
         visibility=post.visibility,
     )
+
+    inbox_item = {
+        "type": "share-post",
+        "title": new_post.title,
+        "id": new_post.url,
+        "source": new_post.source,
+        "origin": new_post.origin,
+        "description": new_post.description or "",
+        "contentType": "text/plain",  
+        "content": new_post.content,
+        "author": {
+            "type": "author",
+            "id": str(author.authorId),
+            "host": request.get_host(),
+            "displayName": author.displayName,
+            "url": author.url,  
+            "github": author.github,  
+            "profileImage": author.profileImage.url if author.profileImage else None
+        },
+        "comments": new_post.url + "/comments", 
+        "published": new_post.published.isoformat(),
+        "visibility": new_post.visibility
+    }
+
+    followers = Follower.objects.filter(author=author)
+    for relation in followers:
+        Inbox.objects.create(
+            author=relation.follower,
+            inbox_item=json.dumps(inbox_item)
+        )
+    
 
     referer_url = request.META.get('HTTP_REFERER')
     if referer_url:
@@ -573,11 +730,27 @@ def comments_post(request, authorId, post_id):
         if not comment_content.strip():
             return redirect('mysocial:post_detail', authorId=authorId, post_id=post_id)
 
-        Comment.objects.create(
+        new_comment = Comment.objects.create(
             author=request.user.author, 
             post=post,
             comment=comment_content,
             contentType='text/plain',
+        )
+
+        author_data = AuthorSerializer(request.user.author).data
+
+        inbox_item = {
+            "type": "comment",
+            "author": author_data,
+            "comment": new_comment.comment,
+            "contentType": new_comment.contentType,
+            "published": new_comment.published.isoformat(),
+            "id": str(new_comment.commentId)
+        }
+
+        Inbox.objects.create(
+            author=post.author,
+            inbox_item=json.dumps(inbox_item)
         )
 
         return redirect('mysocial:post_detail', authorId=authorId, post_id=post_id)

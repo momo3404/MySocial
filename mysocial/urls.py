@@ -19,14 +19,15 @@ urlpatterns = [
     path('authors/<uuid:authorId>/posts/', views.PostListCreateView.as_view(), name='posts_by_author'),
     path('authors/<uuid:authorId>/posts/<uuid:post_id>', views.PostDetailView.as_view(), name='post_detail'),
     path('authors/<uuid:authorId>/posts/<uuid:post_id>/comments', views.comments_post, name='comment_post'),
-    path('authors/<uuid:authorId>/inbox/', views.inbox, name='inbox'),
-
+    path('authors/<uuid:authorId>/inbox', views.InboxView.as_view(), name='author_inbox'),
+ 
     path('profile/<uuid:author_id>/', views.public_profile, name='public_profile'),
     path('profile/<uuid:author_id>/edit_profile/', views.edit_profile, name='edit_profile'),
     path('profile/<uuid:author_id>/follow/', views.follow, name='follow'),
     path('profile/<uuid:author_id>/unfollow/', views.unfollow, name='unfollow'),
+    path('profile/<uuid:author_id>/inbox/', views.inbox, name='inbox'),
     
-    path('process_follow_request/<uuid:author_id>/', views.process_follow_request, name='process_follow_request'),
+    path('process_follow_request/', views.process_follow_request, name='process_follow_request'),
     path('posts/<uuid:post_id>/like/', views.like_post, name='like_post'),
     path('posts/<uuid:post_id>/share/', views.share_post, name='share_post'),
     path('posts/<uuid:post_id>/delete/', views.delete_post, name='delete_post'),

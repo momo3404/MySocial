@@ -54,20 +54,22 @@ class FollowRequestSerializer(serializers.ModelSerializer):
         
 class PostSerializer(serializers.ModelSerializer):
     author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all(), allow_null=True)
-
+    id = serializers.UUIDField(source='postId',format='hex_verbose', required=False, allow_null=True)  
     class Meta:
         model = Post
-        fields = ['type', 'postId' ,'title', 'url', 'source', 'origin', 'description', 'content_type', 'content', 'author', 'published', 'visibility']
+        fields = ['type', 'id' ,'title', 'url', 'source', 'origin', 'description', 'content_type', 'content', 'author', 'published', 'visibility']
     def create(self, validated_data):
         """
         Create and return a new `Post` instance, given the validated data.
         """
+        validated_data['postId'] = validated_data.pop('id', None)
         return Post.objects.create(**validated_data)
     
     def update(self, instance, validated_data):
         """
         Update and return an existing `Post` instance, given the validated data.
         """
+        validated_data['postId'] = validated_data.pop('id', instance.postId)
         instance.type = validated_data.get('type', instance.type)
         instance.title = validated_data.get('title', instance.title)
         instance.url = validated_data.get('url', instance.url)
@@ -82,6 +84,7 @@ class PostSerializer(serializers.ModelSerializer):
         
         instance.save()
         return instance
+    
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all())
     post = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all())

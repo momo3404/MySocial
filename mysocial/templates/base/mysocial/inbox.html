@@ -31,24 +31,36 @@
 </nav>
 
 <body class="h-100 gradient-form" style="background-color: #01579B; color: #FAFAFA;"></body>
-    {% for request in follow_requests %}
-        <div>
-            <p>{{ request.actor.displayName }} wants to follow you.</p>
-            <form  method="post" action="{% url 'mysocial:process_follow_request' author_id=request.object.authorId %}">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="approve">
-                <input type="hidden" name="request_id" value="{{ request.id }}">
-                <button type="submit" class="btn btn-success">Approve</button>
-            </form>
-            <form  method="post" action="{% url 'mysocial:process_follow_request' author_id=request.object.authorId %}">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="reject">
-                <input type="hidden" name="request_id" value="{{ request.id }}">
-                <button type="submit" class="btn btn-danger">Reject</button>
-            </form>
-        </div>
+    {% for item in inbox_items %}
+        {% if item.type == "Follow" %}
+            <div style="margin-left: 20px;">
+                <p>{{ item.actor.displayName }} wants to follow you.</p>
+                <form  method="post" action="{% url 'mysocial:process_follow_request' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="approve">
+                    <input type="hidden" name="actor_id" value="{{ item.actor.id }}">
+                    <input type="hidden" name="object_id" value="{{ item.object.id }}">
+                    <button type="submit" class="btn btn-success">Approve</button>
+                </form>
+                <form  method="post" action="{% url 'mysocial:process_follow_request' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="reject">
+                    <input type="hidden" name="actor_id" value="{{ item.actor.id }}">
+                    <input type="hidden" name="object_id" value="{{ item.object.id }}">
+                    <button type="submit" class="btn btn-danger">Reject</button>
+                </form>
+            </div>
+        {% elif item.type == "post" %}
+        <p style="margin-left: 20px;">{{ item.author.displayName }} made a new post called '{{item.title}}'</p>
+        {% elif item.type == "share-post" %}
+        <p style="margin-left: 20px;">{{ item.author.displayName }} shared a post called '{{item.title}}'</p>
+        {% elif item.type == "Like" %}
+            <p style="margin-left: 20px;">{{ item.summary }}</p>
+        {% elif item.type == "comment" %}
+            <p style="margin-left: 20px;">{{ item.author.displayName }} commented '{{item.comment}}' on your post.</p>
+        {% endif %}
     {% empty %}
-        <p>You have no follow requests.</p>
+        <p>Your inbox is empty.</p>
     {% endfor %}
 </body>
 </html>
