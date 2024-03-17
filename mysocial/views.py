@@ -20,12 +20,12 @@ import uuid
 import json
 import urllib
 from django.core.paginator import Paginator
-
+from django.utils.decorators import method_decorator
 from decouple import config
 
 from .forms import RegisterForm, RemoteServerForm
 from .models import *
-from .serializers import AuthorSerializer, FollowerSerializer, FollowRequestSerializer, PostSerializer, CommentSerializer
+from .serializers import AuthorSerializer, FollowerSerializer, FollowRequestSerializer, PostSerializer, CommentSerializer, LikeSerializer
 
 # Create your views here.
 def index(request):
@@ -133,6 +133,57 @@ def inbox(request, author_id):
 
     return render(request, 'base/mysocial/inbox.html', context)
 
+class LikesView(View):
+    def get(self, request, authorId, post_id):
+        post = get_object_or_404(Post, postId=post_id, author__authorId=authorId)
+        likes = Like.objects.filter(object_url=post.url).order_by('-timestamp')
+        serializer = LikeSerializer(likes, many=True)
+
+        return JsonResponse({
+            "type": "likes",
+            "items": serializer.data,
+            "count": likes.count()
+        })
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CommentsView(View):
+    def get(self, request, authorId, post_id):
+        post = get_object_or_404(Post, postId=post_id, author__authorId=authorId)
+        comments = Comment.objects.filter(post=post).order_by('-published')
+
+        page = int(request.GET.get('page', 1))
+        size = int(request.GET.get('size', 5))
+        start_index = (page - 1) * size
+        end_index = page * size
+
+        comments_paged = comments[start_index:end_index]
+
+        serializer = CommentSerializer(comments_paged, many=True)
+
+        return JsonResponse({
+            "type": "comments",
+            "page": page,
+            "size": size,
+            "post": post.url,
+            "id": request.build_absolute_uri(),
+            "comments": serializer.data
+        })
+
+    def post(self, request, authorId, post_id):
+        post = get_object_or_404(Post, postId=post_id, author__authorId=authorId)
+        data = {
+            'author': request.user.author.authorId, 
+            'post': post.postId,
+            'comment': request.POST.get('comment'),
+            'contentType': request.POST.get('contentType', 'text/plain'),
+        }
+        serializer = CommentSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=201)
+        else:
+            return JsonResponse(serializer.errors, status=400)
+
 class InboxView(APIView):
     def get_author(self, authorId):
         try:
@@ -151,7 +202,7 @@ class InboxView(APIView):
 
         return Response({
             "type": "inbox",
-            "author": str(author.url),
+            "author": str(author.authorId),
             "items": items
         })
 
@@ -159,7 +210,7 @@ class InboxView(APIView):
         author = self.get_author(authorId)
         data = request.data
 
-        if data.get('type') in ["post", "follow", "Like", "comment"]:
+        if data.get('type') in ["post", "follow", "Like", "comment", "share-post"]:
             inbox_item = Inbox(author=author, inbox_item=json.dumps(data))
             inbox_item.save()
             return Response(status=status.HTTP_201_CREATED)

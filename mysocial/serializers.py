@@ -86,9 +86,10 @@ class PostSerializer(serializers.ModelSerializer):
         return instance
     
 class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all())
+    author = AuthorSerializer(read_only=True)
     post = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all())
+    id = serializers.UUIDField(source='commentId',format='hex_verbose', required=False, allow_null=True)  
 
     class Meta:
         model = Comment
-        fields = ['type', 'author', 'comment', 'contentType', 'published', 'commentId', 'post']
+        fields = ['type', 'author', 'comment', 'contentType', 'published', 'id', 'post']
