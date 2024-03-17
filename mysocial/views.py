@@ -248,6 +248,7 @@ def public_profile(request, author_id):
     posts = Post.objects.filter(author=author).order_by('-published')
     print(posts)
     already_following = False
+    follow_requested = False
     viewing_own_profile = False
     if request.user.is_authenticated:
         try:
@@ -582,3 +583,34 @@ def comments_post(request, authorId, post_id):
         return redirect('mysocial:post_detail', authorId=authorId, post_id=post_id)
     
     return HttpResponse(status=405)
+
+
+class LikedView(APIView):
+    def get_author(self, authorId):
+        try:
+            return Author.objects.get(authorId=authorId)
+        except Author.DoesNotExist:
+            raise Http404("Author not found")
+
+    def get(self, request, authorId, format=None):
+        author = self.get_author(authorId)
+        likes = Like.objects.filter(author=author).order_by('-timestamp') 
+
+        liked_items = []
+        for like in likes:
+            author_serializer = AuthorSerializer(author)
+
+            liked_item = {
+                "summary": f"{author.displayName} Likes your post",
+                "type": like.type,
+                "author": author_serializer.data,
+                "object": like.object_url
+            }
+            liked_items.append(liked_item)
+
+        response_data = {
+            "type": "liked",
+            "items": liked_items
+        }
+
+        return Response(response_data)

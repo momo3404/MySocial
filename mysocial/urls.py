@@ -13,6 +13,7 @@ urlpatterns = [
 
     path('authors/', views.AuthorList.as_view(), name='authors'),
     path('authors/<uuid:authorId>/', views.AuthorView.as_view(), name='authors-detail'),
+    path('authors/<uuid:authorId>/liked/', views.LikedView.as_view(), name='liked'),
     path('authors/<uuid:authorId>/followers/', views.FollowerList.as_view()),
     path('authors/<uuid:authorId>/followers/<path:foreignAuthorId>/', views.FollowDetail.as_view()),
     path('authors/<uuid:authorId>/posts/', views.PostListCreateView.as_view(), name='posts_by_author'),
