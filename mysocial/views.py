@@ -18,6 +18,7 @@ from django.http import JsonResponse
 import requests
 import uuid
 import json
+import urllib
 
 from decouple import config
 
@@ -144,7 +145,7 @@ class AuthorList(APIView):
     def get(self, request, format=None):
         authors = Author.objects.all()
         serializer = AuthorSerializer(authors, many=True)
-        return Response(serializer.data)
+        return Response({"type": "authors", "items": serializer.data})
 
 class AuthorView(APIView):
     def get_object(self, authorId):
@@ -168,34 +169,73 @@ class AuthorView(APIView):
     
 class FollowerList(APIView):
     def get(self, request, authorId=None, format=None):
-            if authorId is not None:
-                followers = Follower.objects.filter(follower__authorId=authorId)
-            else:
-                followers = Follower.objects.all()
+        if authorId is not None:
+            followers = Follower.objects.filter(author__authorId=authorId)
             serializer = FollowerSerializer(followers, many=True)
-            return Response(serializer.data)
+            response_data = {"type": "followers", "items": [item['follower'] for item in serializer.data]}
+            return Response(response_data)
+        else:
+            return Response({"type": "followers", "items": []})
     
 class FollowDetail(APIView):
-    def get_object(self, authorId):
+    def get_author(self, authorId):
         try:
             return Author.objects.get(authorId=authorId)
         except Author.DoesNotExist:
-            raise Http404
-    
-    def get(self, request, authorId, follower):
-        exists = Follower.objects.filter(author_id=authorId, follower_id=follower).exists()
-        return Response({'follows': exists})
-    
-    def delete(self, request, authorId, follower):
-        Follower.objects.filter(author_id=authorId, follower_id=follower).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-    
-    def put(self, request, authorId, follower):
-        author = self.get_object(authorId)
-        follower_obj = self.get_object(follower)
-        Follower.objects.get_or_create(author=author, follower=follower_obj)
-        return Response(status=status.HTTP_201_CREATED)
+            raise Http404("Author not found")
 
+    def get_follower(self, authorId, foreignAuthorUrl):
+        try:
+            return Follower.objects.get(author__authorId=authorId, follower__authorId=foreignAuthorUrl)
+        except Follower.DoesNotExist:
+            raise Http404("Follower not found")
+    
+    def get(self, request, authorId, foreignAuthorId, format=None): 
+        try:
+            foreignAuthor = self.get_author(foreignAuthorId)
+            author = self.get_author(authorId)
+            self.get_follower(authorId, foreignAuthorId)
+
+            actor_serializer = AuthorSerializer(foreignAuthor)
+            object_serializer = AuthorSerializer(author)
+
+            follow_data = {
+                "type": "Follow",
+                "summary": f"{actor_serializer.data['displayName']} follows {object_serializer.data['displayName']}",
+                "actor": actor_serializer.data,
+                "object": object_serializer.data
+            }
+            return Response(follow_data)
+        except Http404:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request, authorId, foreignAuthorId, format=None):
+        try:
+            follower_instance = self.get_follower(authorId, foreignAuthorId)
+            follower_instance.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Http404:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+    def put(self, request, authorId, foreignAuthorId, format=None):
+        try:
+            author = self.get_author(authorId)
+            try:
+                foreignAuthor = Author.objects.get(authorId=foreignAuthorId)
+            except Author.DoesNotExist:
+                return Response({"detail": "Foreign author not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            _, created = Follower.objects.get_or_create(author=author, follower=foreignAuthor)
+
+            if created:
+                return Response(status=status.HTTP_201_CREATED)
+            else:
+                return Response(status=status.HTTP_200_OK)
+
+        except Http404:
+            return Response({"detail": "Author not found."}, status=status.HTTP_404_NOT_FOUND)
+    
+    
 def public_profile(request, author_id):
     try:
         # author_id string from URL to a UUID object
