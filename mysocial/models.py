@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 import uuid
 
 SHORT = 30 
@@ -7,6 +8,9 @@ MEDIUM = 100
 ID = 500 
 URL = 1000
 CONTENT = 2000
+
+def get_current_time():
+    return timezone.now()
     
 class Author(models.Model):
     type = models.CharField(max_length=SHORT, null=True)
@@ -115,3 +119,14 @@ class Like(models.Model):
 
     def __str__(self):
         return f"{self.author.displayName} likes {self.object_url}"
+
+
+class Inbox(models.Model):
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='inbox_items', null=True, blank=True)
+    inbox_item = models.JSONField(null=True, blank=True)
+    timestamp = models.DateTimeField(default=get_current_time())
+
+    def __str__(self):
+        return self.author.displayName + ": " + self.inbox_item["type"]
+    
+    
