@@ -53,11 +53,11 @@ class FollowRequestSerializer(serializers.ModelSerializer):
         fields = ['id', 'type', 'summary', 'actor', 'object']
         
 class PostSerializer(serializers.ModelSerializer):
-    author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all(), allow_null=True)
+    author = AuthorSerializer(read_only=True)
     id = serializers.UUIDField(source='postId',format='hex_verbose', required=False, allow_null=True)  
     class Meta:
         model = Post
-        fields = ['type', 'id' ,'title', 'url', 'source', 'origin', 'description', 'content_type', 'content', 'author', 'published', 'visibility']
+        fields = ['type', 'title' ,'id', 'source', 'origin', 'description', 'content_type', 'content', 'author', 'count', 'published', 'visibility']
     def create(self, validated_data):
         """
         Create and return a new `Post` instance, given the validated data.
@@ -86,9 +86,10 @@ class PostSerializer(serializers.ModelSerializer):
         return instance
     
 class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all())
+    author = AuthorSerializer(read_only=True)
     post = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all())
+    id = serializers.UUIDField(source='commentId',format='hex_verbose', required=False, allow_null=True)  
 
     class Meta:
         model = Comment
-        fields = ['type', 'author', 'comment', 'contentType', 'published', 'commentId', 'post']
+        fields = ['type', 'author', 'comment', 'contentType', 'published', 'id', 'post']

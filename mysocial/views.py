@@ -20,12 +20,13 @@ import uuid
 import json
 import urllib
 from django.core.paginator import Paginator
-
+from django.utils.decorators import method_decorator
 from decouple import config
-
+from django.core.files.base import ContentFile
+import base64
 from .forms import RegisterForm, RemoteServerForm
 from .models import *
-from .serializers import AuthorSerializer, FollowerSerializer, FollowRequestSerializer, PostSerializer, CommentSerializer
+from .serializers import AuthorSerializer, FollowerSerializer, FollowRequestSerializer, PostSerializer, CommentSerializer, LikeSerializer
 
 # Create your views here.
 def index(request):
@@ -133,6 +134,57 @@ def inbox(request, author_id):
 
     return render(request, 'base/mysocial/inbox.html', context)
 
+class LikesView(View):
+    def get(self, request, authorId, post_id):
+        post = get_object_or_404(Post, postId=post_id, author__authorId=authorId)
+        likes = Like.objects.filter(object_url=post.url).order_by('-timestamp')
+        serializer = LikeSerializer(likes, many=True)
+
+        return JsonResponse({
+            "type": "likes",
+            "items": serializer.data,
+            "count": likes.count()
+        })
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CommentsView(View):
+    def get(self, request, authorId, post_id):
+        post = get_object_or_404(Post, postId=post_id, author__authorId=authorId)
+        comments = Comment.objects.filter(post=post).order_by('-published')
+
+        page = int(request.GET.get('page', 1))
+        size = int(request.GET.get('size', 5))
+        start_index = (page - 1) * size
+        end_index = page * size
+
+        comments_paged = comments[start_index:end_index]
+
+        serializer = CommentSerializer(comments_paged, many=True)
+
+        return JsonResponse({
+            "type": "comments",
+            "page": page,
+            "size": size,
+            "post": post.url,
+            "id": request.build_absolute_uri(),
+            "comments": serializer.data
+        })
+
+    def post(self, request, authorId, post_id):
+        post = get_object_or_404(Post, postId=post_id, author__authorId=authorId)
+        data = {
+            'author': request.user.author.authorId, 
+            'post': post.postId,
+            'comment': request.POST.get('comment'),
+            'contentType': request.POST.get('contentType', 'text/plain'),
+        }
+        serializer = CommentSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=201)
+        else:
+            return JsonResponse(serializer.errors, status=400)
+
 class InboxView(APIView):
     def get_author(self, authorId):
         try:
@@ -151,7 +203,7 @@ class InboxView(APIView):
 
         return Response({
             "type": "inbox",
-            "author": str(author.url),
+            "author": str(author.authorId),
             "items": items
         })
 
@@ -159,7 +211,7 @@ class InboxView(APIView):
         author = self.get_author(authorId)
         data = request.data
 
-        if data.get('type') in ["post", "follow", "Like", "comment"]:
+        if data.get('type') in ["post", "follow", "Like", "comment", "share-post"]:
             inbox_item = Inbox(author=author, inbox_item=json.dumps(data))
             inbox_item.save()
             return Response(status=status.HTTP_201_CREATED)
@@ -420,125 +472,200 @@ class NodeConnection(APIView):
         except Node.DoesNotExist:
             return Response({'error': 'Node not found'}, status=status.HTTP_404_NOT_FOUND)
 
+class PostImageView(View):
+    def get(self, request, authorId, post_id):
+        post = get_object_or_404(Post, postId=post_id, author__authorId=authorId)
+
+        if post.type == 'IMAGE' and post.content:
+            if post.visibility != 'PUBLIC' and (not request.user.is_authenticated or request.user.author != post.author):
+                return HttpResponse('Unauthorized', status=401)
+            try:
+                format, imgstr = post.content.split(';base64,')
+                ext = format.split('/')[-1] 
+                image_data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
+                response = HttpResponse(image_data, content_type='image/' + ext)
+                return response
+            except ValueError:
+                raise Http404("The image data is not in the correct format.")
+        else:
+            raise Http404("The requested post is not an image or doesn't exist.")
+
+
+def display_stream(request, authorId):
+    template_name = 'base/mysocial/stream_posts.html'
+    action = request.GET.get('action', 'all') 
+    author = get_object_or_404(Author, authorId=authorId)
+    posts = Post.objects.all().order_by('-published')
+
+    if action == 'all':
+
+        # Filter posts based on visibility for the current user
+        visible_posts = []
+        for post in posts:
+            if post.visibility == 'PUBLIC':
+                visible_posts.append(post)
+            elif post.visibility == 'PRIVATE':
+                if author.is_friend(post.author) or author == post.author:
+                    visible_posts.append(post)
+
+        visible_posts = [post for post in posts if post.visibility == 'PUBLIC' or (post.visibility == 'PRIVATE' and (author.is_friend(post.author) or author == post.author))]
+
+    elif action == 'followers':
+
+        # Filter posts based on visibility for the current user
+        visible_posts = []
+        for post in posts:
+            if post.visibility == 'PRIVATE':
+                if author.is_friend(post.author) or author == post.author:
+                    visible_posts.append(post)
+
+        visible_posts = [post for post in posts if author.is_friend(post.author) ]
+
+
+    context = {
+        'posts': visible_posts,
+        'author': author,
+    }
+    return render(request, template_name, context)
 
 class PostListCreateView(View):
-    template_name = 'base/mysocial/stream_posts.html'
-
     def get(self, request, authorId):
-        action = request.GET.get('action', 'all') 
         author = get_object_or_404(Author, authorId=authorId)
-        posts = Post.objects.all().order_by('-published')
+        posts = Post.objects.filter(author=author).order_by('-published')
 
-        if action == 'all':
+        # Filter based on the authentication status and relationship to the author
+        if request.user.is_authenticated:
+            if request.user.author == author:
+                # Authenticated as author
+                visible_posts = posts
+            else:
+                # Authenticated, but not as the author
+                visible_posts = posts.filter(visibility='PUBLIC') | posts.filter(author__followers__follower=request.user.author, visibility='FRIENDS')
+        else:
+            # Not authenticated
+            visible_posts = posts.filter(visibility='PUBLIC')
 
-            # Filter posts based on visibility for the current user
-            visible_posts = []
-            for post in posts:
-                if post.visibility == 'PUBLIC':
-                    visible_posts.append(post)
-                elif post.visibility == 'PRIVATE':
-                    if author.is_friend(post.author) or author == post.author:
-                        visible_posts.append(post)
-
-            visible_posts = [post for post in posts if post.visibility == 'PUBLIC' or (post.visibility == 'PRIVATE' and (author.is_friend(post.author) or author == post.author))]
-
-        elif action == 'followers':
-
-            # Filter posts based on visibility for the current user
-            visible_posts = []
-            for post in posts:
-                if post.visibility == 'PRIVATE':
-                    if author.is_friend(post.author) or author == post.author:
-                        visible_posts.append(post)
-
-            visible_posts = [post for post in posts if author.is_friend(post.author) ]
-
-
-        context = {
-            'posts': visible_posts,
-            'author': author,
-        }
-        return render(request, self.template_name, context)
+        # Serialize the posts
+        serializer = PostSerializer(visible_posts, many=True)
+        return JsonResponse(serializer.data, safe=False)
 
     def post(self, request, authorId):
-        post_id = request.POST.get('post_id')
-        title = request.POST.get('title')
-        content = request.POST.get('content')
+        if not request.user.is_authenticated or request.user.author.authorId != authorId:
+            return HttpResponse('Unauthorized', status=401)
+
+        data = json.loads(request.body)
+        data['author'] = authorId  
+
+        serializer = PostSerializer(data=data)
+        if serializer.is_valid():
+            post = serializer.save()
+            return JsonResponse(serializer.data, status=201) 
+        else:
+            return JsonResponse(serializer.errors, status=400)
+
+def create_post(request, authorId):
+    template_name = 'base/mysocial/stream_posts.html'
+    post_id = request.POST.get('post_id')
+    title = request.POST.get('title')
+    content = request.POST.get('content')
 #        post_type = request.POST.get('type') 
-        author = get_object_or_404(Author, authorId=authorId)
+    author = get_object_or_404(Author, authorId=authorId)
 
 #        if post_type == 'IMAGE':
 #            image = request.FILES.get('image')
 
-        if post_id:
-            # Update existing post
-            post = get_object_or_404(Post, pk=post_id)
-            post.title = title
-            post.content = content
-            post.save()
+    if post_id:
+        # Update existing post
+        post = get_object_or_404(Post, pk=post_id)
+        post.title = title
+        post.content = content
+        post.save()
+    else:
+        # Create new post
+        if title and content:
+            new_post = Post.objects.create(title=title, content=content, author=author)
+            post_url = reverse('mysocial:post_detail', kwargs={'authorId': authorId, 'post_id': new_post.postId})
+            new_post.url = request.build_absolute_uri(post_url)
+            new_post.origin = request.build_absolute_uri(post_url)
+            new_post.save()
+            
+            inbox_item = {
+                "type": "post",
+                "title": new_post.title,
+                "id": new_post.url,
+                "source": new_post.source,
+                "origin": new_post.origin,
+                "description": new_post.description or "",
+                "contentType": "text/plain",  
+                "content": new_post.content,
+                "author": {
+                    "type": "author",
+                    "id": str(author.authorId),
+                    "host": request.get_host(),
+                    "displayName": author.displayName,
+                    "url": author.url,  
+                    "github": author.github,  
+                    "profileImage": author.profileImage.url if author.profileImage else None
+                },
+                "comments": new_post.url + "/comments", 
+                "published": new_post.published.isoformat(),
+                "visibility": new_post.visibility
+            }
+            
+            followers = Follower.objects.filter(author=author)
+            for relation in followers:
+                Inbox.objects.create(
+                    author=relation.follower,
+                    inbox_item=json.dumps(inbox_item)
+                )
+            
         else:
-            # Create new post
-            if title and content:
-                new_post = Post.objects.create(title=title, content=content, author=author)
-                post_url = reverse('mysocial:post_detail', kwargs={'authorId': authorId, 'post_id': new_post.postId})
-                new_post.url = request.build_absolute_uri(post_url)
-                new_post.origin = request.build_absolute_uri(post_url)
-                new_post.save()
-                
-                inbox_item = {
-                    "type": "post",
-                    "title": new_post.title,
-                    "id": new_post.url,
-                    "source": new_post.source,
-                    "origin": new_post.origin,
-                    "description": new_post.description or "",
-                    "contentType": "text/plain",  
-                    "content": new_post.content,
-                    "author": {
-                        "type": "author",
-                        "id": str(author.authorId),
-                        "host": request.get_host(),
-                        "displayName": author.displayName,
-                        "url": author.url,  
-                        "github": author.github,  
-                        "profileImage": author.profileImage.url if author.profileImage else None
-                    },
-                    "comments": new_post.url + "/comments", 
-                    "published": new_post.published.isoformat(),
-                    "visibility": new_post.visibility
-                }
-                
-                followers = Follower.objects.filter(author=author)
-                for relation in followers:
-                    Inbox.objects.create(
-                        author=relation.follower,
-                        inbox_item=json.dumps(inbox_item)
-                    )
-                
-            else:
-                posts = Post.objects.all().order_by('-published')
-                context = {
-                    'posts': posts,
-                    'author': author,
-                    'error_message': 'Please fill out all the information required',
-                }
-                return render(request, self.template_name, context)
+            posts = Post.objects.all().order_by('-published')
+            context = {
+                'posts': posts,
+                'author': author,
+                'error_message': 'Please fill out all the information required',
+            }
+            return render(request, template_name, context)
 
-        # Redirect to the posts list to see changes
-        return redirect(reverse('mysocial:posts_by_author', kwargs={'authorId': authorId}))
+    # Redirect to the posts list to see changes
+    return redirect(reverse('mysocial:posts_by_author', kwargs={'authorId': authorId}))
 
 class PostDetailView(View):
-    template_name = 'base/mysocial/stream_posts.html'
-
     def get(self, request, authorId, post_id):
         post = get_object_or_404(Post, postId=post_id)
         author = get_object_or_404(Author, authorId=authorId)
         comments = Comment.objects.filter(post=post).order_by('-published')
 
         if post.visibility == 'PUBLIC' or (post.visibility == 'PRIVATE' and author.is_friend(post.author) or author == post.author):
-            context = {'post': post, 'author': author, 'comments': comments}
         
-        return render(request, 'base/mysocial/post_detail.html', context)
+            post_data = {
+                "type": "post",
+                "title": post.title,
+                "id": post.url,
+                "source": post.source,
+                "origin": post.origin,
+                "description": post.description,
+                "contentType": post.content_type,
+                "content": post.content,
+                "author": {
+                    "type": "author",
+                    "id": str(post.author.authorId),
+                    "host": post.author.host,
+                    "displayName": post.author.displayName,
+                    "url": post.author.url,
+                    "github": post.author.github,
+                    "profileImage": post.author.profileImage.url if post.author.profileImage else None
+                },
+                "count": post.count,
+                "comments": post.url + "comments/",
+                "published": post.published.isoformat(),
+                "visibility": post.visibility
+            }
+
+            return JsonResponse(post_data)
+        else:
+            return HttpResponse('Forbidden', status=403)
 
     def delete(self, request, authorId, post_id):
             post = get_object_or_404(Post, postId=post_id)
@@ -562,6 +689,16 @@ class PostDetailView(View):
                 return HttpResponse('Post updated', status=200)
             else:
                 return HttpResponse('Forbidden', status=403)
+
+def display_post(request, authorId, post_id):
+    post = get_object_or_404(Post, postId=post_id)
+    author = get_object_or_404(Author, authorId=authorId)
+    comments = Comment.objects.filter(post=post).order_by('-published')
+
+    if post.visibility == 'PUBLIC' or (post.visibility == 'PRIVATE' and author.is_friend(post.author) or author == post.author):
+        context = {'post': post, 'author': author, 'comments': comments}
+    
+    return render(request, 'base/mysocial/post_detail.html', context)
 
 @login_required
 @require_POST
