@@ -24,7 +24,7 @@ from django.utils.decorators import method_decorator
 from decouple import config
 from django.core.files.base import ContentFile
 import base64
-from .forms import RegisterForm, RemoteServerForm
+from .forms import RegisterForm
 from .models import *
 from .serializers import AuthorSerializer, FollowerSerializer, FollowRequestSerializer, PostSerializer, CommentSerializer, LikeSerializer
 
@@ -45,41 +45,40 @@ def register(request):
     return render(request, 'base/registration/register.html', {'form': form})
 
 
-def add_server(request):
-    if request.method == 'POST':
-        form = RemoteServerForm(request.POST)
-        if form.is_valid():
-            new_remote_server = form.save(commit=False)
-            data = connect_to_remote_server(new_remote_server.id)
-            
-            if data is not None:
-                print("Successfully connected to the remote server and retrieved data.")
+def remote(request):
+    nodes = Node.objects.all()
+    node_details = []
+
+    for node in nodes:
+        node_status = {
+            'node_name': node.node_name,
+            'node_url': node.url,
+            'authors': []
+        }
+
+        try:
+            node_response = requests.get(node.url, auth=HTTPBasicAuth(node.username, node.password), timeout=5)
+            authors_response = requests.get(node.authors_url, auth=HTTPBasicAuth(node.username, node.password), timeout=5)
+
+            if node_response.status_code == 200:
+                node_status['status'] = "Node successfully connected."
             else:
-                print("Failed to connect to the remote server.")
-            return redirect('../')  
-    else:
-        form = RemoteServerForm()
-    return render(request, 'base/remote/add_server.html', {'form': form})
+                node_status['status'] = "Could not connect to node. Please inform your server admin."
 
+            if authors_response.status_code == 200:
+                authors_data = authors_response.json()
+                node_status['authors'] = authors_data.get('items', [])
+            else:
+                node_status['status'] += " Could not retrieve authors. Please inform your server admin."
 
-def connect_to_remote_server(remote_server_id):
-    try:
-        remote_server = RemoteServer.objects.get(id=remote_server_id)
-        request_url = f"{remote_server.url}/api/data"
-        response = requests.get(request_url, auth=HTTPBasicAuth(remote_server.username, remote_server.password))
-        
-        if response.status_code == 200:
-            data = response.json()
-            return data
-        else:
-            print(f"Failed to connect to {remote_server.url}. Status code: {response.status_code}")
-            return None
-    except RemoteServer.DoesNotExist:
-        print("Remote server not found.")
-        return None
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return None
+        except requests.exceptions.RequestException as e:
+            node_status['status'] = "Could not connect to node. Please inform your server admin."
+
+        node_details.append(node_status)
+
+    context = {'node_details': node_details}
+    return render(request, 'base/mysocial/remote.html', context)
+
 
 @login_required
 @require_POST

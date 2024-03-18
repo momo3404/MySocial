@@ -74,6 +74,11 @@
               <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:posts_by_author' request.user.author.authorId %}">Stream</a>
             </li>
           </ul>
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:remote'%}">Connect</a>
+            </li>
+          </ul>
       </div>
     </div>
 </nav>

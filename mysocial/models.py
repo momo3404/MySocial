@@ -94,21 +94,12 @@ class Comment(models.Model):
     
 class Node(models.Model):
     node_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    host = models.CharField(max_length=SHORT, default="127.0.0.1:8000")
     node_name = models.CharField(max_length=MEDIUM, blank=True)
-    node_cred = models.CharField(max_length=MEDIUM, blank=True)
-    api_url = models.URLField(max_length=SHORT, blank=True)
-    
-class RemoteServer(models.Model):
-    url = models.URLField(max_length=URL)
-    username = models.CharField(max_length=MEDIUM)
-    password = models.CharField(max_length=MEDIUM)
-
-    def __str__(self):
-        return self.url
-    
-    
+    url = models.URLField(max_length=URL, default="127.0.0.1:8000/")
+    authors_url = models.URLField(max_length=URL, default="127.0.0.1:8000/authors")
+    username = models.CharField(max_length=MEDIUM, blank=True)
+    password = models.CharField(max_length=MEDIUM, blank=True)
+        
 class Like(models.Model):
     context = models.URLField(default="https://www.w3.org/ns/activitystreams")
     summary = models.CharField(max_length=255)
@@ -124,7 +115,7 @@ class Like(models.Model):
 class Inbox(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='inbox_items', null=True, blank=True)
     inbox_item = models.JSONField(null=True, blank=True)
-    timestamp = models.DateTimeField(default=get_current_time())
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.author.displayName + ": " + self.inbox_item["type"]

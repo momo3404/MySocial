@@ -7,7 +7,7 @@ urlpatterns = [
     path("", views.index, name="index"),
     path('register/', views.register, name="register" ),
     path('login/', views.CustomLoginView.as_view(), name='login'),
-    path('add_server/', views.add_server, name='add_server'),
+    path('remote/', views.remote, name='remote'),
     path('node_connection/<str:node_name>', views.NodeConnection.as_view(), name='node_connection'),
     path('api/<str:node_name>/info/', views.NodeInfoAPIView.as_view(), name='node_info'),
 
