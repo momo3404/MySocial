@@ -83,7 +83,7 @@
             <!-- Form Section for Creating and Editing Posts -->
             <div id="postFormSection" class="form-section">
                 <h2 id="formTitle" style="color: black;">Create New Post</h2>
-                <form id="postForm" action="{% url 'mysocial:posts_by_author' authorId=author.authorId %}" method="post">
+                <form id="postForm" action="{% url 'mysocial:create_post' authorId=author.authorId %}" method="post">
                     {% csrf_token %}
                     <input type="hidden" id="postId" name="post_id" value=""> <!-- Hidden field for post ID (empty for new posts) -->
                     <div class="mb-3">
@@ -142,7 +142,7 @@
                                 const response = await fetch(`/mysocial/authors/${authorId}`)
                                 let data = await response.json()
                                 if (data.authorId !== null || data.authorId !== undefined) {
-                                    authorElement.innerHTML = `By: <a href="/mysocial/profile/${data.authorId}">${data.displayName}</a>`;
+                                    authorElement.innerHTML = `By: <a href="/mysocial/profile/${data.authorId}/">${data.displayName}</a>`;
                                 }
            
                             }
