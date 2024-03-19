@@ -117,7 +117,8 @@ class Inbox(models.Model):
     inbox_item = models.JSONField(null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return self.author.displayName + ": " + self.inbox_item["type"]
     
+class RemoteFollow(models.Model):
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='remote_follow', null=True, blank=True)
+    follower_inbox = models.URLField()  
     

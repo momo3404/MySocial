@@ -53,6 +53,7 @@ def remote(request):
         node_status = {
             'node_name': node.node_name,
             'node_url': node.url,
+            'node_id': node.node_id,
             'authors': []
         }
 
@@ -210,7 +211,7 @@ class InboxView(APIView):
         author = self.get_author(authorId)
         data = request.data
 
-        if data.get('type') in ["post", "follow", "Like", "comment", "share-post"]:
+        if data.get('type') in ["post", "Follow", "Like", "comment", "share-post"]:
             inbox_item = Inbox(author=author, inbox_item=json.dumps(data))
             inbox_item.save()
             return Response(status=status.HTTP_201_CREATED)
@@ -923,3 +924,35 @@ class LikedView(APIView):
         }
 
         return Response(response_data)
+    
+    
+def send_remote_follow(request):
+    if request.method == 'POST':
+        object_id = request.POST.get('object_id')
+        node_id = request.POST.get('node_id')
+        
+        author_serializer = AuthorSerializer(request.user.author)
+        data = {
+            "type": "Follow",
+            "summary": f"{request.user.username} wants to follow {request.POST.get('object_displayName')}",
+            "actor": author_serializer.data,
+            "object": {
+                "type": "author",
+                "id": object_id,
+                "host": request.POST.get('object_host'),
+                "displayName": request.POST.get('object_displayName'),
+                "url": request.POST.get('object_url'),
+                "github": request.POST.get('object_github'),
+                "profileImage": request.POST.get('object_profileImage'),
+            }
+        }
+        node = Node.objects.get(node_id=node_id)
+        
+        response = requests.post(f"{request.POST.get('object_host')}authors/{object_id}/inbox/", json=data, auth=HTTPBasicAuth(node.username, node.password))
+        
+        if response.status_code == 201:
+            return JsonResponse({'message': 'Follow request sent successfully.'}, status=201)
+        else:
+            return JsonResponse({'message': 'Failed to send follow request.', 'error': response.text}, status=response.status_code)
+
+    return JsonResponse({'message': 'Invalid request method. Only POST is allowed.'}, status=405)
