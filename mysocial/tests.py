@@ -97,7 +97,7 @@ class CommentsViewTestCase(TestCase):
 
     def test_get_comments_success(self):
         postid = uuid.uuid1()
-        url = reverse('mysocial:comments', kwargs={'authorId': self.author_id, 'post_id': postid})
+        url = reverse('mysocial:comments_post', kwargs={'authorId': self.author_id, 'post_id': postid})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         data = response.json()
@@ -109,7 +109,7 @@ class CommentsViewTestCase(TestCase):
     def test_create_comment_success(self):
         postid = uuid.uuid1()
         self.client.force_login(self.user)
-        url = reverse('mysocial:comments', kwargs={'authorId': self.author_id, 'post_id': postid})
+        url = reverse('mysocial:comments_post', kwargs={'authorId': self.author_id, 'post_id': postid})
         data = {'comment': 'New Test Comment', 'contentType': 'text/plain'}
         response = self.client.post(url, data=data)
         self.assertEqual(response.status_code, 201)
@@ -122,7 +122,7 @@ class CommentsViewTestCase(TestCase):
     def test_create_comment_invalid_data(self):
         self.client.force_login(self.user)
         postid = uuid.uuid1()
-        url = reverse('mysocial:comments', kwargs={'authorId': self.author_id, 'post_id': postid})
+        url = reverse('mysocial:comments_post', kwargs={'authorId': self.author_id, 'post_id': postid})
         data = {'contentType': 'text/plain'}
         response = self.client.post(url, data=data)
         self.assertEqual(response.status_code, 400)
@@ -171,3 +171,104 @@ class InboxViewTestCase(TestCase):
         self.assertEqual(response.status_code, 204)
         self.assertEqual(Inbox.objects.filter(author=self.author).count(), 0)
 
+class FollowerListTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user('testuser', 'test@example.com', 'testpassword')
+        self.author_id = uuid.uuid4() 
+        self.author = Author.objects.create(authorId= self.author_id, displayName='Test Author', user=self.user)
+        self.follower_user = User.objects.create_user('followeruser', 'follower@example.com', 'followerpassword')
+        self.follower = Author.objects.create(displayName='Follower Author', user=self.follower_user)
+        Follower.objects.create(author=self.author, follower=self.follower)
+
+    def test_get_followers(self):
+        response = self.client.get(reverse('mysocial:follow', kwargs={'author_id': self.author_id}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['items']), 1)
+        self.assertEqual(response.data['items'][0]['displayName'], 'Follower Author')
+
+
+class FollowDetailTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user('testuser', 'test@example.com', 'testpassword')
+        self.author_id = uuid.uuid4() 
+        self.author = Author.objects.create(authorId= self.author_id, displayName='Test Author', user=self.user)
+        self.follower_user = User.objects.create_user('followeruser', 'follower@example.com', 'followerpassword')
+        self.follower = Author.objects.create(displayName='Follower Author', user=self.follower_user)
+        self.follower_relation = Follower.objects.create(author=self.author, follower=self.follower)
+
+    def test_get_follow_detail(self):
+        url = reverse('mysocial:follow', kwargs={'author_id': self.author_id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+
+    def test_unfollow(self):
+        url = reverse('mysocial:unfollow', kwargs={'author_id': self.author_id})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        
+
+class PublicProfileTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user('testuser', 'test@example.com', 'testpassword')
+        self.author = Author.objects.create(displayName='Test Author', user=self.user)
+
+    def test_get_public_profile(self):
+        url = reverse('mysocial:public_profile', kwargs={'author_id': self.author_id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+class EditProfileTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user('testuser', 'test@example.com', 'testpassword')
+        self.author = Author.objects.create(displayName='Test Author', user=self.user)
+
+    def test_edit_profile(self):
+        url = reverse('mysocial:edit_profile', kwargs={'author_id': self.author_id})
+        data = {
+            'displayName': 'New Display Name',
+            'bio': 'New bio',
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+class PostDetailViewTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.author = Author.objects.create(displayName='Test Author')
+        self.post = Post.objects.create(
+            type='POST',
+            title='Test Post',
+            url='https://eclass.srv.ualberta.ca/my/',
+            description='Test description',
+            content_type='POST',
+            content='Test content',
+            author=self.author,
+            count=10,
+            likesCount=5,
+            comments='https://eclass.srv.ualberta.ca/my/comments/',
+            visibility='PUBLIC'
+        )
+
+    def test_get_post_detail(self):
+        url = reverse('post-detail', kwargs={'authorId': self.author.authorId, 'post_id': self.post.postId})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_delete_post(self):
+        url = reverse('post-detail', kwargs={'authorId': self.author.authorId, 'post_id': self.post.postId})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_update_post(self):
+        url = reverse('post-detail', kwargs={'authorId': self.author.authorId, 'post_id': self.post.postId})
+        data = {
+            'title': 'Updated Test Post',
+            'content': 'Updated Test content',
+        }
+        response = self.client.put(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
