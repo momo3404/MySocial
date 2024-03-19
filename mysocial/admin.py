@@ -9,6 +9,7 @@ admin.site.register(Node)
 admin.site.register(Follower)
 admin.site.register(FollowRequest)
 admin.site.register(Like)
+admin.site.register(Inbox)
 
 def make_active(modeladmin, request, queryset):
     queryset.update(is_active=True)
