@@ -237,13 +237,14 @@ def process_follow_request(request):
     if request.method == 'POST':
         action = request.POST.get('action')
         author_id  = request.POST.get('object_id')
-        actor = get_author(request.POST.get('actor_id'))
-        object = get_author(request.POST.get('object_id'), create_remote=True)
+        actor_id = request.POST.get('actor_id')
+        actor = get_author(actor_id, create_remote=True)
+        object = get_author(request.POST.get('object_id'))
 
-        if object is None:
+        if actor is None:
             RemoteFollow.objects.create(
-                author=actor, 
-                follower_inbox=request.POST.get('follower_inbox')
+                author=object, 
+                follower_inbox= actor_id + "/inbox/"
             )
             return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
 
