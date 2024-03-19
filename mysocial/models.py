@@ -113,6 +113,7 @@ class Like(models.Model):
 
 
 class Inbox(models.Model):
+    inbox_id = models.UUIDField(default=uuid.uuid4, editable=False)
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='inbox_items', null=True, blank=True)
     inbox_item = models.JSONField(null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)

@@ -43,6 +43,7 @@
                 <form  method="post" action="{% url 'mysocial:process_follow_request' %}">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="approve">
+                    <input type="hidden" name="inbox_item_id" value="{{ item.inbox_id }}">
                     <input type="hidden" name="actor_id" value="{{ item.actor.id }}">
                     <input type="hidden" name="object_id" value="{{ item.object.id }}">
                     <button type="submit" class="btn btn-success">Approve</button>
@@ -50,6 +51,7 @@
                 <form  method="post" action="{% url 'mysocial:process_follow_request' %}">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="reject">
+                    <input type="hidden" name="inbox_item_id" value="{{ item.inbox_id }}">
                     <input type="hidden" name="actor_id" value="{{ item.actor.id }}">
                     <input type="hidden" name="object_id" value="{{ item.object.id }}">
                     <button type="submit" class="btn btn-danger">Reject</button>

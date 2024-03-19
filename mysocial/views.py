@@ -124,8 +124,11 @@ def inbox(request, author_id):
 
     inbox_items = Inbox.objects.filter(author=author).order_by('-timestamp')
     processed_inbox_items = []
-    if(inbox_items):
-        processed_inbox_items = [json.loads(item.inbox_item) for item in inbox_items]
+    if inbox_items:
+        for item in inbox_items:
+            item_data = json.loads(item.inbox_item)
+            item_data['inbox_id'] = item.inbox_id 
+            processed_inbox_items.append(item_data)
 
     context = {
         'author': author,
@@ -236,28 +239,29 @@ def process_follow_request(request):
     
     if request.method == 'POST':
         action = request.POST.get('action')
+        inbox_item_id = request.POST.get('inbox_item_id')
         author_id  = request.POST.get('object_id')
         actor_id = request.POST.get('actor_id')
         actor = get_author(actor_id, create_remote=True)
         object = get_author(request.POST.get('object_id'))
+        inbox_item = Inbox.objects.filter(inbox_id=inbox_item_id).first()
 
         if actor is None:
             RemoteFollow.objects.create(
                 author=object, 
                 follower_inbox= actor_id + "/inbox/"
             )
+            inbox_item.delete()
             return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
 
-
         try:
-            follow_requests = FollowRequest.objects.filter(actor=actor, object=object)
+            follow_request = FollowRequest.objects.filter(actor=actor, object=object).first()
 
             if action == "approve":
-                for follow_request in follow_requests:
-                    Follower.objects.create(author=follow_request.object, follower=follow_request.actor)
-            else:
-                for follow_request in follow_requests:
-                    follow_request.delete()
+                Follower.objects.create(author=follow_request.object, follower=follow_request.actor)
+                
+            inbox_item.delete()
+            follow_request.delete()
 
             return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
 
