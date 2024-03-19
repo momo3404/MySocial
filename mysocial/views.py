@@ -226,18 +226,27 @@ class InboxView(APIView):
 @login_required
 @csrf_exempt  
 def process_follow_request(request):
-    def get_author(authorId):
+    def get_author(authorId, create_remote=False):
         try:
             return Author.objects.get(authorId=authorId)
         except Author.DoesNotExist:
-            print(authorId)
+            if create_remote:
+                return None
             raise Http404("Author not found")
     
     if request.method == 'POST':
         action = request.POST.get('action')
         author_id  = request.POST.get('object_id')
         actor = get_author(request.POST.get('actor_id'))
-        object = get_author(request.POST.get('object_id'))
+        object = get_author(request.POST.get('object_id'), create_remote=True)
+
+        if object is None:
+            RemoteFollow.objects.create(
+                author=actor, 
+                follower_inbox=request.POST.get('follower_inbox')
+            )
+            return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
+
 
         try:
             follow_requests = FollowRequest.objects.filter(actor=actor, object=object)
