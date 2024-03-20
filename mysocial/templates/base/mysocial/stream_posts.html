@@ -81,7 +81,8 @@
                 <!-- Form for showing all posts -->
                 <form action="" method="get">
                     <button style= "margin-bottom: 15px; background-color:#DBB630; color:#0056b3;" type="submit" name="action" value="all">All Posts</button>
-                    <button style= "margin-bottom: 15px; background-color:#DBB630; color:#0056b3;" type="submit" name="action" value="followers">Following</button>
+                    <button style= "margin-bottom: 15px; background-color:#DBB630; color:#0056b3;" type="submit" name="action" value="following">Following</button>
+                    <button style= "margin-bottom: 15px; background-color:#DBB630; color:#0056b3;" type="submit" name="action" value="unlisted">Unlisted</button>
                 </form>
 
                 </div>
@@ -98,6 +99,14 @@
                     <div class="mb-3">
                         <label for="content" class="form-label">Content</label>
                         <textarea class="form-control" id="content" name="content" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="visibility" class="form-label">Visibility</label>
+                        <select class="form-select" id="visibility" name="visibility">
+                            <option value="PUBLIC">Public</option>
+                            <option value="PRIVATE">Private</option>
+                            <option value="UNLISTED">Unlisted</option>
+                        </select>
                     </div>
                     <!-- Add File Input for Image Upload -->
                     <div class="mb-3">
@@ -116,88 +125,89 @@
             <!-- Posts Container -->
             <div class="posts-container">
                 {% for post in posts %}
-                <div class="card post-card" id="post-{{ post.id }}">
-                    <div class="card-header post-header">
-                        <!-- Display message if post.source exists -->
-                        {% if post.source %}
-                        <div style="font-size: 12px; color: #555; margin-bottom: 5px;">
-                            This post was shared by {{ post.author.displayName }}
-                        </div>
-                        {% endif %}
-                        <h5 class="post-title">
-                            <a href="{% url 'mysocial:post_detail' authorId=post.author.authorId post_id=post.postId %}">
-                                {{ post.title }}
-                            </a>
-                        </h5>
-                        <h6 id="author-info-{{ forloop.counter }}">By: <a href="{% url 'mysocial:public_profile' post.author.authorId %}">
-                            {{ post.author.displayName }}
-                            </a>
-                        </h6>
-                        {% if post.source %}
-                        <script>
-                            // Update author information if source exists
-                            sourceUrl = "{{ post.source }}";
-                            authorElement = document.getElementById('author-info-{{ forloop.counter }}');
-                            updateAuthorInfo(sourceUrl, authorElement);
-                            
-                            async function updateAuthorInfo(sourceUrl, authorElement) {
-                                urlParts = sourceUrl.split('/');
-                                authorId = urlParts[urlParts.length - 3]; 
-                                console.log(authorElement);
-                                const response = await fetch(`/mysocial/authors/${authorId}`)
-                                let data = await response.json()
-                                if (data.authorId !== null || data.authorId !== undefined) {
-                                    authorElement.innerHTML = `By: <a href="/mysocial/profile/${data.authorId}/">${data.displayName}</a>`;
-                                }
-           
-                            }
-                        </script>
-                        {% endif %}
-                        <!-- Edit Button -->
-                        {% if author.authorId == post.author.authorId %}
-                        <button style = "margin-left: 10px;" onclick="editPost('{{ post.id }}', '{{ post.title|escapejs }}', '{{ post.content|escapejs }}');" class="btn btn-sm btn-edit">Edit</button>
-                       
-                        {% endif %}
-                        </h6>
-                    </div>
-                    <div class="card-body post-content">
-                        {% if post.image %}
-                            <!-- Image -->
-                            <img src="{{ post.image.url }}" alt="{{ post.title }}" style="max-width: 100px;">
-                        {% else %}
-                            <!-- Text or Commonmark Post -->
-                            <p>{{ post.content }}</p>
-                        {% endif %}
-                    </div>
-                    <div class="card-footer post-footer d-flex justify-content-between align-items-center">
-                        <div class="post-interactions d-flex align-items-center">
-                            <form action="{% url 'mysocial:like_post' post.postId %}" method="post" class="me-2">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-edit">Like</button>
-                            </form>
-                            {% if post.author.authorId != author.authorId %}
-                                <form action="{% url 'mysocial:share_post' post.postId %}" method="post" class="me-2">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-edit">Share</button>
-                                </form>
-                            {% endif %}
-                            {% if author.authorId == post.author.authorId %}
-                            <form action="{% url 'mysocial:delete_post' post.postId %}" method="post" class="me-2">
-                                {% csrf_token %}
-                                <button style="background-color: #E53935;" type="submit" class="btn btn-sm btn-edit">Delete</button>
-                            </form>
-                            {% endif %}
-                            <span class="like-count me-2">{{ post.likesCount }} Likes</span>
-                        </div>
-                        <small class="text-muted">Published: {{ post.published }}</small>
-                    </div>
-
-                    <div class="comments-section">
-                        <a href="{% url 'mysocial:post_detail' authorId=post.author.authorId post_id=post.postId %}" class="btn btn-sm btn-primary">View Comments</a>
-                    </div>
-                </div>
-
+                    {% if post.visibility != 'UNLISTED' or post.author.authorId == author.authorId %}
+                        <div class="card post-card" id="post-{{ post.id }}">
+                            <div class="card-header post-header">
+                                <!-- Display message if post.source exists -->
+                                {% if post.source %}
+                                <div style="font-size: 12px; color: #555; margin-bottom: 5px;">
+                                    This post was shared by {{ post.author.displayName }}
+                                </div>
+                                {% endif %}
+                                <h5 class="post-title">
+                                    <a href="{% url 'mysocial:post_detail' authorId=post.author.authorId post_id=post.postId %}">
+                                        {{ post.title }}
+                                    </a>
+                                </h5>
+                                <h6 id="author-info-{{ forloop.counter }}">By: <a href="{% url 'mysocial:public_profile' post.author.authorId %}">
+                                    {{ post.author.displayName }}
+                                    </a>
+                                </h6>
+                                {% if post.source %}
+                                <script>
+                                    // Update author information if source exists
+                                    sourceUrl = "{{ post.source }}";
+                                    authorElement = document.getElementById('author-info-{{ forloop.counter }}');
+                                    updateAuthorInfo(sourceUrl, authorElement);
+                                    
+                                    async function updateAuthorInfo(sourceUrl, authorElement) {
+                                        urlParts = sourceUrl.split('/');
+                                        authorId = urlParts[urlParts.length - 3]; 
+                                        console.log(authorElement);
+                                        const response = await fetch(`/mysocial/authors/${authorId}`)
+                                        let data = await response.json()
+                                        if (data.authorId !== null || data.authorId !== undefined) {
+                                            authorElement.innerHTML = `By: <a href="/mysocial/profile/${data.authorId}/">${data.displayName}</a>`;
+                                        }
                 
+                                    }
+                                </script>
+                                {% endif %}
+                                <!-- Edit Button -->
+                                {% if author.authorId == post.author.authorId %}
+                                <button style = "margin-left: 10px;" onclick="editPost('{{ post.id }}', '{{ post.title|escapejs }}', '{{ post.content|escapejs }}');" class="btn btn-sm btn-edit">Edit</button>
+                            
+                                {% endif %}
+                                </h6>
+                            </div>
+                            <div class="card-body post-content">
+                                {% if post.image %}
+                                    <!-- Image -->
+                                    <img src="{{ post.image.url }}" alt="{{ post.title }}" style="max-width: 100px;">
+                                {% else %}
+                                    <!-- Text or Commonmark Post -->
+                                    <p>{{ post.content }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="card-footer post-footer d-flex justify-content-between align-items-center">
+                                <div class="post-interactions d-flex align-items-center">
+                                    <form action="{% url 'mysocial:like_post' post.postId %}" method="post" class="me-2">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-edit">Like</button>
+                                    </form>
+                                    {% if post.author.authorId != author.authorId and post.visibility == 'PUBLIC' %}
+                                        <form action="{% url 'mysocial:share_post' post.postId %}" method="post" class="me-2">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-edit">Share</button>
+                                        </form>
+                                    {% endif %}
+                                    {% if author.authorId == post.author.authorId %}
+                                    <form action="{% url 'mysocial:delete_post' post.postId %}" method="post" class="me-2">
+                                        {% csrf_token %}
+                                        <button style="background-color: #E53935;" type="submit" class="btn btn-sm btn-edit">Delete</button>
+                                    </form>
+                                    {% endif %}
+                                    <span class="like-count me-2">{{ post.likesCount }} Likes</span>
+                                </div>
+                                <small class="text-muted">Published: {{ post.published }}</small>
+                            </div>
+
+                            <div class="comments-section">
+                                <a href="{% url 'mysocial:post_detail' authorId=post.author.authorId post_id=post.postId %}" class="btn btn-sm btn-primary">View Comments</a>
+                            </div>
+                        </div>
+
+                    {% endif %}
                 {% endfor %}
             </div>
             <!-- Floating Action Button for New Post -->

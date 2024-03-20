@@ -76,9 +76,29 @@
             <div class="card-header post-header">
                 <h5 class="post-title">{{ post.title }}</h5>
             </div>
-            <h6>By: <a href="{% url 'mysocial:public_profile' post.author.authorId %}" >
+            <h6 id="author-info">By: <a href="{% url 'mysocial:public_profile' post.author.authorId %}" >
                 {{ post.author.displayName }}
                 </a>
+                {% if post.source %}
+                <script>
+                    // Update author information if source exists
+                    sourceUrl = "{{ post.source }}";
+                    authorElement = document.getElementById('author-info');
+                    updateAuthorInfo(sourceUrl, authorElement);
+                    
+                    async function updateAuthorInfo(sourceUrl, authorElement) {
+                        urlParts = sourceUrl.split('/');
+                        authorId = urlParts[urlParts.length - 3]; 
+                        console.log(authorElement);
+                        const response = await fetch(`/mysocial/authors/${authorId}`)
+                        let data = await response.json()
+                        if (data.authorId !== null || data.authorId !== undefined) {
+                            authorElement.innerHTML = `By: <a href="/mysocial/profile/${data.authorId}/">${data.displayName}</a>`;
+                        }
+
+                    }
+                </script>
+                {% endif %}
             <!-- Edit Button -->
             {% if author.authorId == post.author.authorId %}
             <button style = "margin-left: 10px;" onclick="editPost('{{ post.id }}', '{{ post.title|escapejs }}', '{{ post.content|escapejs }}');" class="btn btn-sm btn-edit">Edit</button>
