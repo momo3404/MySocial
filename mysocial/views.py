@@ -214,39 +214,31 @@ class InboxView(APIView):
 
     def post(self, request, authorId, format=None):
         author = self.get_author(authorId)
+        print("GOT HERE")
         data = request.data
 
         if data.get('type') == 'post':
-
-            try:
-        
-                author_data = data.get('author', {})  
-                author_type = author_data.get('id')  
-                author2 = get_object_or_404(Author, authorId=author_type)
-                new_post = Post.objects.create(
-                    type=data.get('type'), 
-                    title=data.get('title'), 
-                    url=data.get('id'),
-                    source=data.get('source'),
-                    origin=data.get('origin'),
-                    description=data.get('description'),
-                    content_type=data.get('contentType'),
-                    content=data.get('content'),
-                    author=author2,
-                    comments=data.get('comments'),
-                    published=data.get('published'),
-                    visibility=data.get('visibility')
-                )
-            
-            except IntegrityError:
-
-                print("already a post with that url")
-
-#            post_url = reverse('mysocial:post_detail', kwargs={'authorId': authorId, 'post_id': new_post.postId})
-#            new_post.url = request.build_absolute_uri(post_url)
-#            new_post.origin = request.build_absolute_uri(post_url)
-#            new_post.save()
-            
+            post_id = data.get('id')
+            if post_id:
+                existing_post = Post.objects.filter(postId=post_id).first()
+                if existing_post:
+                    return Response({'detail': 'Post already exists.'}, status=status.HTTP_200_OK)
+                try:
+                    new_post = Post.objects.create(
+                        author=author,
+                        type=data.get('type', 'post'),
+                        title=data.get('title'),
+                        url=data.get('url'),
+                        source=data.get('source'),
+                        origin=data.get('origin'),
+                        description=data.get('description'),
+                        content_type=data.get('contentType', 'post'),
+                        content=data.get('content'),
+                        visibility=data.get('visibility', 'PUBLIC'),
+                    )
+                    return Response({'detail': 'New post created.'}, status=status.HTTP_201_CREATED)
+                except IntegrityError:
+                    return Response({'detail': 'IntegrityError, post could not be created.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if data.get('type') in ["post", "Follow", "Like", "comment", "share-post"]:
             inbox_item = Inbox(author=author, inbox_item=json.dumps(data))
@@ -285,7 +277,7 @@ def process_follow_request(request):
             follower = item.get("actor")
             RemoteFollow.objects.create(
                 author=object, 
-                follower_inbox= follower.get("host") + "authors/" + actor_id + "/inbox/"
+                follower_inbox= follower.get("host") + "authors/" + str(actor_id) + "/inbox/"
             )
             inbox_item.delete()
             return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
