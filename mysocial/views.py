@@ -622,6 +622,7 @@ def create_post(request, authorId):
     template_name = 'base/mysocial/stream_posts.html'
     post_id = request.POST.get('post_id')
     title = request.POST.get('title')
+    description = request.POST.get('description')
     content = request.POST.get('content')
     visibility = request.POST.get('visibility')
     image = request.FILES.get('image')
@@ -640,15 +641,16 @@ def create_post(request, authorId):
 
     if post_id:
         # Update existing post
-        post = get_object_or_404(Post, pk=post_id)
+        post = get_object_or_404(Post, postId=post_id)
         post.title = title
+        post.description = description
         post.content = content
         post.visibility = visibility
         post.save()
     else:
         # Create new post
         if title and content:
-            new_post = Post.objects.create(title=title, content=content, author=author, visibility=visibility, image=image)
+            new_post = Post.objects.create(title=title, description=description, content=content, author=author, visibility=visibility, image=image)
             post_url = reverse('mysocial:post_detail', kwargs={'authorId': authorId, 'post_id': new_post.postId})
             new_post.url = request.build_absolute_uri(post_url)
             new_post.origin = request.build_absolute_uri(post_url)
@@ -884,18 +886,9 @@ def share_post(request, post_id):
 @login_required
 @require_POST
 def delete_post(request, post_id):
-    post = get_object_or_404(Post, postId=post_id)
-    
-    # Check if the requesting user is the author of the post
-    if request.user.author == post.author:
-        
-        # Delete the post
-        post.delete()
-        
-        
-        return HttpResponse('Post deleted', status=204)
-    else:
-        return HttpResponse('Forbidden', status=403)
+    post = get_object_or_404(Post, postId=post_id, author=request.user.author)
+    post.delete()
+    return redirect(reverse('mysocial:posts_by_author', kwargs={'authorId': request.user.author.authorId}))
 
     
 def fetch_github_activity(request):

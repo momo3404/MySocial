@@ -13,6 +13,7 @@
             padding: 10px;
         }
         .post-card {
+            position: relative;
             margin-bottom: 20px;
         }
         .post-header, .post-footer {
@@ -36,6 +37,24 @@
         .btn-edit:hover {
             background-color: #0056b3; /* Darker blue on hover */
             color: white;
+        }
+        .delete-btn {
+        position: absolute;
+        top: 10px; /* Adjusted for better positioning */
+        right: 10px; /* Adjusted for better positioning */
+        border: none;
+        background-color: transparent;
+        color: #E53935; /* Red color for the icon */
+        cursor: pointer;
+        font-size: 1.5em; /* Increase the size of the icon */
+        }
+        .delete-btn:hover {
+            color: #b71c1c; /* Darker shade of red for hover */
+            transform: scale(1.1); /* Optional: Slightly enlarge on hover */
+        }
+        /* If you want the icon bolder, most icon fonts inherit the font-weight, so: */
+        .delete-btn i {
+            font-weight: bold; /* Make the icon bolder */
         }
     </style>
 </head>
@@ -92,14 +111,22 @@
                 <form id="postForm" action="{% url 'mysocial:create_post' authorId=author.authorId %}" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     <input type="hidden" id="postId" name="post_id" value=""> <!-- Hidden field for post ID (empty for new posts) -->
+                    <h5 style="color: black; text-align: left;">Title</h5>
                     <div class="mb-3">
                         <label for="title" class="form-label">Title</label>
                         <input type="text" class="form-control" id="title" name="title" required>
                     </div>
+                    <h5 style="color: black; text-align: left;">Description</h5>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="2"></textarea>
+                    </div>                    
+                    <h5 style="color: black; text-align: left;">Content</h5>
                     <div class="mb-3">
                         <label for="content" class="form-label">Content</label>
                         <textarea class="form-control" id="content" name="content" rows="3"></textarea>
                     </div>
+                    <h5 style="color: black; text-align: left;">Visibility</h5>
                     <div class="mb-3">
                         <label for="visibility" class="form-label">Visibility</label>
                         <select class="form-select" id="visibility" name="visibility">
@@ -143,6 +170,7 @@
                                     {{ post.author.displayName }}
                                     </a>
                                 </h6>
+                                <p class="post-description">{{ post.description }}</p>
                                 {% if post.source %}
                                 <script>
                                     // Update author information if source exists
@@ -165,8 +193,13 @@
                                 {% endif %}
                                 <!-- Edit Button -->
                                 {% if author.authorId == post.author.authorId %}
-                                <button style = "margin-left: 10px;" onclick="editPost('{{ post.id }}', '{{ post.title|escapejs }}', '{{ post.content|escapejs }}');" class="btn btn-sm btn-edit">Edit</button>
-                            
+                                <button onclick="editPost('{{ post.postId }}', '{{ post.title|escapejs }}', '{{ post.description|escapejs }}', '{{ post.content|escapejs }}', '{{ post.visibility }}');" class="btn btn-sm btn-edit">Edit</button>
+                                <form action="{% url 'mysocial:delete_post' post.postId %}" method="post" style="position: absolute; top: 10px; right: 10px;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="delete-btn" title="Delete Post">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </form>
                                 {% endif %}
                                 </h6>
                             </div>
@@ -190,12 +223,6 @@
                                             {% csrf_token %}
                                             <button type="submit" class="btn btn-sm btn-edit">Share</button>
                                         </form>
-                                    {% endif %}
-                                    {% if author.authorId == post.author.authorId %}
-                                    <form action="{% url 'mysocial:delete_post' post.postId %}" method="post" class="me-2">
-                                        {% csrf_token %}
-                                        <button style="background-color: #E53935;" type="submit" class="btn btn-sm btn-edit">Delete</button>
-                                    </form>
                                     {% endif %}
                                     <span class="like-count me-2">{{ post.likesCount }} Likes</span>
                                 </div>
@@ -229,24 +256,23 @@
             document.getElementById("formTitle").innerText = "Create New Post";
             document.getElementById("postId").value = ""; // Clear post ID for new posts
             document.getElementById("title").value = "";
+            document.getElementById("description").value = "";
             document.getElementById("content").value = "";
+            document.getElementById("visibility").value = "";
             toggleForm();
         }
 
-        function editPost(postId, title, content) {
+        function editPost(postId, title, description, content, visibility) {
             document.getElementById("formTitle").innerText = "Edit Post";
-            document.getElementById("postId").value = postId; // Set post ID for edits
+            document.getElementById("postId").value = postId;
             document.getElementById("title").value = title;
+            document.getElementById("description").value = description;
             document.getElementById("content").value = content;
-            document.getElementById("visibility").value = visibility;
+            document.getElementById("visibility").value = visibility; // Set the visibility dropdown
             toggleForm();
         }
 
-        // not currently being used
-        function deletePost(postId, authorId) {
-            const postElement = document.getElementById(`post-${postId}`);
-            postElement.remove();
-        }
+
 
         document.addEventListener('DOMContentLoaded', (event) => {
         const renderer = new marked.Renderer();
