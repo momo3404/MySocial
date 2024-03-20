@@ -680,18 +680,19 @@ def create_post(request, authorId):
                 "visibility": new_post.visibility
             }
             
+            remote_followers = RemoteFollow.objects.filter(author=author)
+            for relation in remote_followers:
+                inbox_url = relation.follower_inbox
+                response = requests.post(f'inbox_url', json=inbox_item)
+            
+            
             followers = Follower.objects.filter(author=author)
             for relation in followers:
-                host_url = relation.follower.host
-                url = f'{host_url}/mysocial/authors/'         # change later to find authors node url
-                author_id = relation.follower.authorId
-                print(author_id)
-                response = requests.post(f'{url}{author_id}/inbox/', json=inbox_item)
-#                Inbox.objects.create(
-#                   author=relation.follower,
-#                   inbox_item=json.dumps(inbox_item)
-#                )
-            
+               Inbox.objects.create(
+                  author=relation.follower,
+                  inbox_item=json.dumps(inbox_item)
+               )
+               
         else:
             posts = Post.objects.all().order_by('-published')
             context = {
