@@ -54,6 +54,7 @@ def remote(request):
         node_status = {
             'node_name': node.node_name,
             'node_url': node.url,
+            'node_id': node.node_id,
             'authors': []
         }
 
@@ -124,8 +125,11 @@ def inbox(request, author_id):
 
     inbox_items = Inbox.objects.filter(author=author).order_by('-timestamp')
     processed_inbox_items = []
-    if(inbox_items):
-        processed_inbox_items = [json.loads(item.inbox_item) for item in inbox_items]
+    if inbox_items:
+        for item in inbox_items:
+            item_data = json.loads(item.inbox_item)
+            item_data['inbox_id'] = item.inbox_id 
+            processed_inbox_items.append(item_data)
 
     context = {
         'author': author,
@@ -243,7 +247,7 @@ class InboxView(APIView):
 #            new_post.save()
             
 
-        if data.get('type') in ["post", "follow", "Like", "comment"]:
+        if data.get('type') in ["post", "follow", "Like", "comment", "share-post"]:
             inbox_item = Inbox(author=author, inbox_item=json.dumps(data))
             inbox_item.save()
             return Response(status=status.HTTP_201_CREATED)
@@ -258,28 +262,39 @@ class InboxView(APIView):
 @login_required
 @csrf_exempt  
 def process_follow_request(request):
-    def get_author(authorId):
+    def get_author(authorId, create_remote=False):
         try:
             return Author.objects.get(authorId=authorId)
         except Author.DoesNotExist:
-            print(authorId)
+            if create_remote:
+                return None
             raise Http404("Author not found")
     
     if request.method == 'POST':
         action = request.POST.get('action')
+        inbox_item_id = request.POST.get('inbox_item_id')
         author_id  = request.POST.get('object_id')
-        actor = get_author(request.POST.get('actor_id'))
+        actor_id = request.POST.get('actor_id')
+        actor = get_author(actor_id, create_remote=True)
         object = get_author(request.POST.get('object_id'))
+        inbox_item = Inbox.objects.filter(inbox_id=inbox_item_id).first()
+
+        if actor is None:
+            RemoteFollow.objects.create(
+                author=object, 
+                follower_inbox= actor_id + "/inbox/"
+            )
+            inbox_item.delete()
+            return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
 
         try:
-            follow_requests = FollowRequest.objects.filter(actor=actor, object=object)
+            follow_request = FollowRequest.objects.filter(actor=actor, object=object).first()
 
             if action == "approve":
-                for follow_request in follow_requests:
-                    Follower.objects.create(author=follow_request.object, follower=follow_request.actor)
-            else:
-                for follow_request in follow_requests:
-                    follow_request.delete()
+                Follower.objects.create(author=follow_request.object, follower=follow_request.actor)
+                
+            inbox_item.delete()
+            follow_request.delete()
 
             return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
 
@@ -963,3 +978,35 @@ class LikedView(APIView):
         }
 
         return Response(response_data)
+    
+    
+def send_remote_follow(request):
+    if request.method == 'POST':
+        object_id = request.POST.get('object_id')
+        node_id = request.POST.get('node_id')
+        
+        author_serializer = AuthorSerializer(request.user.author)
+        data = {
+            "type": "Follow",
+            "summary": f"{request.user.username} wants to follow {request.POST.get('object_displayName')}",
+            "actor": author_serializer.data,
+            "object": {
+                "type": "author",
+                "id": object_id,
+                "host": request.POST.get('object_host'),
+                "displayName": request.POST.get('object_displayName'),
+                "url": request.POST.get('object_url'),
+                "github": request.POST.get('object_github'),
+                "profileImage": request.POST.get('object_profileImage'),
+            }
+        }
+        node = Node.objects.get(node_id=node_id)
+        
+        response = requests.post(f"{request.POST.get('object_host')}authors/{object_id}/inbox/", json=data, auth=HTTPBasicAuth(node.username, node.password))
+        
+        if response.status_code == 201:
+            return JsonResponse({'message': 'Follow request sent successfully.'}, status=201)
+        else:
+            return JsonResponse({'message': 'Failed to send follow request.', 'error': response.text}, status=response.status_code)
+
+    return JsonResponse({'message': 'Invalid request method. Only POST is allowed.'}, status=405)

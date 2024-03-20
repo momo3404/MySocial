@@ -113,15 +113,12 @@ class Like(models.Model):
 
 
 class Inbox(models.Model):
+    inbox_id = models.UUIDField(default=uuid.uuid4, editable=False)
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='inbox_items', null=True, blank=True)
     inbox_item = models.JSONField(null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        author_name = self.author.displayName if self.author else "Unknown Author"
-        item_type = "Unknown Type"
-        if self.inbox_item and isinstance(self.inbox_item, dict) and "type" in self.inbox_item:
-            item_type = self.inbox_item["type"]
-        return f"{author_name}: {item_type}"
     
+class RemoteFollow(models.Model):
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='remote_follow', null=True, blank=True)
+    follower_inbox = models.URLField()  
     

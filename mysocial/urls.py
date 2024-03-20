@@ -37,6 +37,8 @@ urlpatterns = [
     path('posts/<uuid:post_id>/like/', views.like_post, name='like_post'),
     path('posts/<uuid:post_id>/share/', views.share_post, name='share_post'),
     path('posts/<uuid:post_id>/delete/', views.delete_post, name='delete_post'),
+    
+    path('remote-follow/', views.send_remote_follow, name='remote_follow'),
 
     path('github-activity/', views.fetch_github_activity, name='github-activity'),
 ]
