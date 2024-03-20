@@ -118,7 +118,6 @@ def unfollow(request, author_id):
     Follower.objects.filter(author=target_author, follower=user_author).delete()
     return redirect('mysocial:public_profile', author_id=author_id)
 
-@login_required
 def inbox(request, author_id):
     author = get_object_or_404(Author, authorId=author_id)
 
@@ -249,7 +248,7 @@ class InboxView(APIView):
 #            new_post.save()
             
 
-        if data.get('type') in ["post", "follow", "Like", "comment", "share-post"]:
+        if data.get('type') in ["post", "Follow", "Like", "comment", "share-post"]:
             inbox_item = Inbox(author=author, inbox_item=json.dumps(data))
             inbox_item.save()
             return Response(status=status.HTTP_201_CREATED)
