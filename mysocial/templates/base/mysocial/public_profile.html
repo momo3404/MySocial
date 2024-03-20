@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -90,7 +91,7 @@
             {% if author.profileImage %}
                 <img src="{{ author.profileImage.url }}" alt="Profile image">
             {% else %}
-                <img src="static/images/profile_images/default-profile-pic.jpeg" alt="Profile image">
+                <img src="{% static 'images/profile_images/default-profile-pic.jpeg' %}" alt="Profile image">
             {% endif %}
             {% if author.bio %}
                 <p><strong>Bio:</strong> {{ author.bio }}</p>
