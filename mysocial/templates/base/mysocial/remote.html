@@ -53,8 +53,17 @@
                         <strong>{{ author.displayName }}</strong>
                         <p>ID: {{ author.id }}<br>URL: {{ author.url }}</p>
                     </div>
-                    <button type="button" class="btn btn-primary btn-sm" style="margin-right:20px; margin-left: 20px;">Follow</button>
-                    
+                    <form action="{% url 'mysocial:remote_follow' %}" method="post" style="margin-right: 20px;">
+                        {% csrf_token %}
+                        <input type="hidden" name="node_id" value="{{ node.node_id }}">
+                        <input type="hidden" name="object_id" value="{{ author.id }}">
+                        <input type="hidden" name="object_host" value="{{ author.host }}">
+                        <input type="hidden" name="object_displayName" value="{{ author.displayName }}">
+                        <input type="hidden" name="object_url" value="{{ author.url }}">
+                        <input type="hidden" name="object_github" value="{{ author.github }}">
+                        <input type="hidden" name="object_profileImage" value="{{ author.profileImage }}">
+                        <button type="submit" class="btn btn-primary btn-sm">Follow</button>
+                    </form>
                 </div>
                 {% endfor %}
 
