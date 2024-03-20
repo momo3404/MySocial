@@ -1,1 +1,1 @@
-web: gunicorn project.wsgi
+web: gunicorn mysocial404.wsgi
