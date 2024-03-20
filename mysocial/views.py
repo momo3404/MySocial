@@ -118,7 +118,6 @@ def unfollow(request, author_id):
     Follower.objects.filter(author=target_author, follower=user_author).delete()
     return redirect('mysocial:public_profile', author_id=author_id)
 
-@login_required
 def inbox(request, author_id):
     author = get_object_or_404(Author, authorId=author_id)
 
@@ -215,41 +214,33 @@ class InboxView(APIView):
 
     def post(self, request, authorId, format=None):
         author = self.get_author(authorId)
+        print("GOT HERE")
         data = request.data
 
         if data.get('type') == 'post':
+            post_id = data.get('id')
+            if post_id:
+                existing_post = Post.objects.filter(postId=post_id).first()
+                if existing_post:
+                    return Response({'detail': 'Post already exists.'}, status=status.HTTP_200_OK)
+                try:
+                    new_post = Post.objects.create(
+                        author=author,
+                        type=data.get('type', 'post'),
+                        title=data.get('title'),
+                        url=data.get('url'),
+                        source=data.get('source'),
+                        origin=data.get('origin'),
+                        description=data.get('description'),
+                        content_type=data.get('contentType', 'post'),
+                        content=data.get('content'),
+                        visibility=data.get('visibility', 'PUBLIC'),
+                    )
+                    return Response({'detail': 'New post created.'}, status=status.HTTP_201_CREATED)
+                except IntegrityError:
+                    return Response({'detail': 'IntegrityError, post could not be created.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            try:
-        
-                author_data = data.get('author', {})  
-                author_type = author_data.get('id')  
-                author2 = get_object_or_404(Author, authorId=author_type)
-                new_post = Post.objects.create(
-                    type=data.get('type'), 
-                    title=data.get('title'), 
-                    url=data.get('id'),
-                    source=data.get('source'),
-                    origin=data.get('origin'),
-                    description=data.get('description'),
-                    content_type=data.get('contentType'),
-                    content=data.get('content'),
-                    author=author2,
-                    comments=data.get('comments'),
-                    published=data.get('published'),
-                    visibility=data.get('visibility')
-                )
-            
-            except IntegrityError:
-
-                print("already a post with that url")
-
-#            post_url = reverse('mysocial:post_detail', kwargs={'authorId': authorId, 'post_id': new_post.postId})
-#            new_post.url = request.build_absolute_uri(post_url)
-#            new_post.origin = request.build_absolute_uri(post_url)
-#            new_post.save()
-            
-
-        if data.get('type') in ["post", "follow", "Like", "comment", "share-post"]:
+        if data.get('type') in ["post", "Follow", "Like", "comment", "share-post"]:
             inbox_item = Inbox(author=author, inbox_item=json.dumps(data))
             inbox_item.save()
             return Response(status=status.HTTP_201_CREATED)
@@ -282,9 +273,11 @@ def process_follow_request(request):
         inbox_item = Inbox.objects.filter(inbox_id=inbox_item_id).first()
 
         if actor is None:
+            item = json.loads(inbox_item.inbox_item)
+            follower = item.get("actor")
             RemoteFollow.objects.create(
                 author=object, 
-                follower_inbox= actor_id + "/inbox/"
+                follower_inbox= follower.get("host") + "authors/" + str(actor_id) + "/inbox/"
             )
             inbox_item.delete()
             return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
@@ -660,7 +653,7 @@ def create_post(request, authorId):
             inbox_item = {
                 "type": "post",
                 "title": new_post.title,
-                "id": new_post.url,
+                "id": str(new_post.postId),
                 "source": new_post.source,
                 "origin": new_post.origin,
                 "description": new_post.description or "",
@@ -680,18 +673,20 @@ def create_post(request, authorId):
                 "visibility": new_post.visibility
             }
             
+            remote_followers = RemoteFollow.objects.filter(author=author)
+            for relation in remote_followers:
+                inbox_url = relation.follower_inbox
+                print(inbox_url)
+                response = requests.post(f'{inbox_url}', json=inbox_item)
+            
+            
             followers = Follower.objects.filter(author=author)
             for relation in followers:
-                host_url = relation.follower.host
-                url = f'{host_url}/mysocial/authors/'         # change later to find authors node url
-                author_id = relation.follower.authorId
-                print(author_id)
-                response = requests.post(f'{url}{author_id}/inbox/', json=inbox_item)
-#                Inbox.objects.create(
-#                   author=relation.follower,
-#                   inbox_item=json.dumps(inbox_item)
-#                )
-            
+               Inbox.objects.create(
+                  author=relation.follower,
+                  inbox_item=json.dumps(inbox_item)
+               )
+               
         else:
             posts = Post.objects.all().order_by('-published')
             context = {
