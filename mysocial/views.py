@@ -14,6 +14,7 @@ from django.http import HttpResponseRedirect
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
+from django.db import IntegrityError
 from django.http import JsonResponse
 import requests
 import uuid
@@ -214,7 +215,39 @@ class InboxView(APIView):
         author = self.get_author(authorId)
         data = request.data
 
-        if data.get('type') in ["post", "Follow", "Like", "comment", "share-post"]:
+        if data.get('type') == 'post':
+
+            try:
+        
+                author_data = data.get('author', {})  
+                author_type = author_data.get('id')  
+                author2 = get_object_or_404(Author, authorId=author_type)
+                new_post = Post.objects.create(
+                    type=data.get('type'), 
+                    title=data.get('title'), 
+                    url=data.get('id'),
+                    source=data.get('source'),
+                    origin=data.get('origin'),
+                    description=data.get('description'),
+                    content_type=data.get('contentType'),
+                    content=data.get('content'),
+                    author=author2,
+                    comments=data.get('comments'),
+                    published=data.get('published'),
+                    visibility=data.get('visibility')
+                )
+            
+            except IntegrityError:
+
+                print("already a post with that url")
+
+#            post_url = reverse('mysocial:post_detail', kwargs={'authorId': authorId, 'post_id': new_post.postId})
+#            new_post.url = request.build_absolute_uri(post_url)
+#            new_post.origin = request.build_absolute_uri(post_url)
+#            new_post.save()
+            
+
+        if data.get('type') in ["post", "follow", "Like", "comment", "share-post"]:
             inbox_item = Inbox(author=author, inbox_item=json.dumps(data))
             inbox_item.save()
             return Response(status=status.HTTP_201_CREATED)
@@ -628,10 +661,14 @@ def create_post(request, authorId):
             
             followers = Follower.objects.filter(author=author)
             for relation in followers:
-                Inbox.objects.create(
-                    author=relation.follower,
-                    inbox_item=json.dumps(inbox_item)
-                )
+                url = 'http://127.0.0.1:8000/mysocial/authors/'         # change later to find authors node url
+                author_id = relation.follower.authorId
+                print(author_id)
+                response = requests.post(f'{url}{author_id}/inbox/', json=inbox_item)
+#                Inbox.objects.create(
+#                   author=relation.follower,
+#                   inbox_item=json.dumps(inbox_item)
+#                )
             
         else:
             posts = Post.objects.all().order_by('-published')
@@ -785,34 +822,37 @@ def share_post(request, post_id):
     )
 
     inbox_item = {
-        "type": "share-post",
-        "title": new_post.title,
-        "id": new_post.url,
-        "source": new_post.source,
-        "origin": new_post.origin,
-        "description": new_post.description or "",
-        "contentType": "text/plain",  
-        "content": new_post.content,
+        "type": "post",
+        "title": post.title,
+        "id": post.url,
+        "source": post.source,
+        "origin": post.origin,
+        "description": post.description or "",
+        "contentType": post.content_type,  
+        "content": post.content,
         "author": {
             "type": "author",
-            "id": str(author.authorId),
+            "id": str(post.author.authorId),
             "host": request.get_host(),
-            "displayName": author.displayName,
-            "url": author.url,  
-            "github": author.github,  
-            "profileImage": author.profileImage.url if author.profileImage else None
+            "displayName": post.author.displayName,
+            "url": post.author.url,  
+            "github": post.author.github,  
+            "profileImage": post.author.profileImage.url if post.author.profileImage else None
         },
-        "comments": new_post.url + "/comments", 
-        "published": new_post.published.isoformat(),
-        "visibility": new_post.visibility
+        "comments": post.url + "/comments", 
+        "published": post.published.isoformat(),
+        "visibility": post.visibility
     }
 
     followers = Follower.objects.filter(author=author)
     for relation in followers:
-        Inbox.objects.create(
-            author=relation.follower,
-            inbox_item=json.dumps(inbox_item)
-        )
+        url = 'http://127.0.0.1:8000/mysocial/authors/'         # change later to find authors node url
+        author_id = relation.follower.authorId
+        response = requests.post(f'{url}{author_id}/inbox/', json=inbox_item)
+#        Inbox.objects.create(
+#            author=relation.follower,
+#            inbox_item=json.dumps(inbox_item)
+#        )
     
 
     referer_url = request.META.get('HTTP_REFERER')

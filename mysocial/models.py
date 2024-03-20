@@ -117,7 +117,6 @@ class Inbox(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='inbox_items', null=True, blank=True)
     inbox_item = models.JSONField(null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
-
     
 class RemoteFollow(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='remote_follow', null=True, blank=True)
