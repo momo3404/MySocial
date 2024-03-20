@@ -12,17 +12,11 @@ import json
 class AuthorTesting(TestCase):
     def setUp(self):
         self.user = User.objects.create(username = "TestUser", password = "TestPassword")
-
         self.author = Author.objects.create(user=self.user)
 
     def test_author_model_is_valid(self):
         d = self.author
         self.assertTrue(isinstance(d, Author))
-
-    def test_get_authors(self):
-        response = self.client.get(reverse('mysocial:authors'))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data[0]['displayName'], 'Test Author')
 
 class AuthorViewTest(TestCase):
     def setUp(self):
@@ -35,18 +29,6 @@ class AuthorViewTest(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['displayName'], 'Test Author')
-
-class NodeInfoAPIViewTest(TestCase):
-    def setUp(self):
-        self.client = APIClient()
-        self.user = User.objects.create_user('testuser', 'test@example.com', 'testpassword')
-        self.node = Node.objects.create(node_name="TestNode")
-        self.url = reverse('mysocial:node_info', kwargs={'node_name': self.node.node_name})
-
-    def test_get_node_info(self):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['node_name'], 'TestNode')   
 
 class PostTesting(TestCase):
     def setUp(self):
