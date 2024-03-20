@@ -653,7 +653,7 @@ def create_post(request, authorId):
             inbox_item = {
                 "type": "post",
                 "title": new_post.title,
-                "id": new_post.url,
+                "id": str(new_post.postId),
                 "source": new_post.source,
                 "origin": new_post.origin,
                 "description": new_post.description or "",
