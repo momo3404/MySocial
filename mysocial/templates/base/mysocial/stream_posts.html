@@ -175,10 +175,12 @@
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-sm btn-edit">Like</button>
                             </form>
-                            <form action="{% url 'mysocial:share_post' post.postId %}" method="post" class="me-2">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-edit">Share</button>
-                            </form>
+                            {% if post.author.authorId != author.authorId %}
+                                <form action="{% url 'mysocial:share_post' post.postId %}" method="post" class="me-2">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-edit">Share</button>
+                                </form>
+                            {% endif %}
                             {% if author.authorId == post.author.authorId %}
                             <form action="{% url 'mysocial:delete_post' post.postId %}" method="post" class="me-2">
                                 {% csrf_token %}
