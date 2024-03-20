@@ -29,6 +29,7 @@ from .forms import RegisterForm
 from .models import *
 from .serializers import AuthorSerializer, FollowerSerializer, FollowRequestSerializer, PostSerializer, CommentSerializer, LikeSerializer
 import commonmark
+from urllib.parse import urlparse
 
 # Create your views here.
 def index(request):
@@ -891,17 +892,55 @@ def delete_post(request, post_id):
     return redirect(reverse('mysocial:posts_by_author', kwargs={'authorId': request.user.author.authorId}))
 
     
-def fetch_github_activity(request):
-    github_token = config('GITHUB_TOKEN')
-    headers = {'Authorization': f'token {github_token}'}
-    url = 'https://api.github.com/users/archip1/events/public'
-    
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        events = response.json()
-        return render(request, 'activity/github_activity.html', {'events': events})
-    else:
-        return HttpResponse("Failed to fetch GitHub activity", status=500)
+def fetch_github_activity(request, author_id):
+    try:
+        # Retrieve the Author instance from the database
+        author = Author.objects.get(authorId=author_id)
+        
+        # Ensure the author has a linked GitHub username
+        if not author.github:
+            return render(request, 'base/mysocial/error_page.html', {'error': 'GitHub username not set for author.'})
+        
+        parsed_url = urlparse(author.github)  # Parse the URL
+        path_parts = parsed_url.path.split('/')  # Split the path by '/'
+        github_username = path_parts[-1] if path_parts[-1] else path_parts[-2]
+
+        # GitHub API endpoint to fetch public events for a user
+        github_events_url = f'https://api.github.com/users/{github_username}/events/public'
+        response = requests.get(github_events_url)
+        response.raise_for_status()  # Will raise an HTTPError if the HTTP request returned an unsuccessful status code
+        
+        # Process GitHub events and create post
+        created_posts = []
+        for event in response.json():
+            title = event.get('type') + " Event"
+            description = "GitHub event processed."
+            content = event.get('payload', {}).get('commits', [{}])[0].get('message', 'No commit message available.')
+            visibility = "PUBLIC" 
+            
+            # Create new post
+            new_post = Post.objects.create(
+                title=title,
+                description=description,
+                content=content,
+                author=author,
+                visibility=visibility,
+            )
+            
+            # Generate post URL
+            post_url = reverse('mysocial:post_detail', kwargs={'authorId': author_id, 'post_id': new_post.postId})
+            new_post.url = request.build_absolute_uri(post_url)
+            new_post.origin = request.build_absolute_uri(post_url)
+            new_post.save()
+            created_posts.append(new_post)
+        return render(request, 'base/mysocial/github_posts.html', {'posts': created_posts, 'author': author})
+
+
+    except Author.DoesNotExist:
+        return render(request, 'base/mysocial/error_page.html', {'error': 'Author not found.'})
+    except requests.HTTPError as e:
+        return render(request, 'base/mysocial/error_page.html', {'error': str(e)})
+
 
 
 @login_required
