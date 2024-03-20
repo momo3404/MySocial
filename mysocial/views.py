@@ -281,9 +281,11 @@ def process_follow_request(request):
         inbox_item = Inbox.objects.filter(inbox_id=inbox_item_id).first()
 
         if actor is None:
+            item = json.loads(inbox_item.inbox_item)
+            follower = item.get("actor")
             RemoteFollow.objects.create(
                 author=object, 
-                follower_inbox= actor_id + "/inbox/"
+                follower_inbox= follower.get("host") + "authors/" + actor_id + "/inbox/"
             )
             inbox_item.delete()
             return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
@@ -682,7 +684,8 @@ def create_post(request, authorId):
             remote_followers = RemoteFollow.objects.filter(author=author)
             for relation in remote_followers:
                 inbox_url = relation.follower_inbox
-                response = requests.post(f'inbox_url', json=inbox_item)
+                print(inbox_url)
+                response = requests.post(f'{inbox_url}', json=inbox_item)
             
             
             followers = Follower.objects.filter(author=author)
