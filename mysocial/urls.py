@@ -29,6 +29,7 @@ urlpatterns = [
     path('profile/<uuid:author_id>/unfollow/', views.unfollow, name='unfollow'),
     path('profile/<uuid:author_id>/inbox/', views.inbox, name='inbox'),
     path('profile/<uuid:authorId>/posts/<uuid:post_id>/comments/', views.comments_post, name='comment_post'),
+    path('profile/<uuid:author_id>/github-activity/', views.fetch_github_activity, name='github-activity'),
     
     path('process_follow_request/', views.process_follow_request, name='process_follow_request'),
     path('posts/<uuid:authorId>/<uuid:post_id>/', views.display_post, name='post_detail'),
@@ -40,5 +41,4 @@ urlpatterns = [
     
     path('remote-follow/', views.send_remote_follow, name='remote_follow'),
 
-    path('github-activity/', views.fetch_github_activity, name='github-activity'),
 ]

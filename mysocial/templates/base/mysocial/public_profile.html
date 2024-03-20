@@ -100,6 +100,7 @@
         {% if viewing_own_profile %}
             <a href="{% url 'mysocial:edit_profile' author.authorId %}" class="btn btn-primary">Edit Profile</a>
         {% endif %}
+        <a href="{% url 'mysocial:github-activity' author_id=author.authorId %}" class="btn btn-secondary">View GitHub Activity</a>
     </div>
 
     {% if user.is_authenticated %}
