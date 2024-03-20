@@ -18,7 +18,7 @@
       }
     ],
     "paths": {
-      "/mysocial/authors/": {
+      "/authors/": {
         "get": {
           "parameters": [
             {
@@ -94,7 +94,7 @@
           }
         }
       },
-      "/mysocial/authors/{AUTHOR_ID}/": {
+      "/authors/{AUTHOR_ID}/": {
         "parameters": [
           {
             "name": "AUTHOR_ID",
