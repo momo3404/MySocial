@@ -73,6 +73,7 @@ class Post(models.Model):
     VISIBILITY_CHOICES = [
         ('PUBLIC', 'Public'),
         ('PRIVATE', 'Private'),
+        ('UNLISTED', 'Unlisted'),
     ]
     visibility = models.CharField(max_length=SHORT, choices=VISIBILITY_CHOICES, default="PUBLIC", null=False)
 

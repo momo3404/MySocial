@@ -528,21 +528,22 @@ def display_stream(request, authorId):
     action = request.GET.get('action', 'all') 
     author = get_object_or_404(Author, authorId=authorId)
     posts = Post.objects.all().order_by('-published')
+    visible_posts = []
 
     if action == 'all':
 
         # Filter posts based on visibility for the current user
         visible_posts = []
         for post in posts:
-            if post.visibility == 'PUBLIC':
+            if post.visibility == 'PUBLIC' or 'UNLISTED':
                 visible_posts.append(post)
             elif post.visibility == 'PRIVATE':
                 if author.is_friend(post.author) or author == post.author:
                     visible_posts.append(post)
 
-        visible_posts = [post for post in posts if post.visibility == 'PUBLIC' or (post.visibility == 'PRIVATE' and (author.is_friend(post.author) or author == post.author))]
+        #visible_posts = [post for post in posts if post.visibility == 'PUBLIC' or (post.visibility == 'PRIVATE' and (author.is_friend(post.author) or author == post.author))]
 
-    elif action == 'followers':
+    elif action == 'following':
 
         # Filter posts based on visibility for the current user
         visible_posts = []
@@ -552,7 +553,13 @@ def display_stream(request, authorId):
                     visible_posts.append(post)
 
         visible_posts = [post for post in posts if author.is_friend(post.author) ]
+    
+    elif action == 'unlisted':
 
+        visible_posts = []
+        for post in posts:
+            if post.visibility == 'UNLISTED':
+                    visible_posts.append(post)
 
     context = {
         'posts': visible_posts,
@@ -600,6 +607,7 @@ def create_post(request, authorId):
     post_id = request.POST.get('post_id')
     title = request.POST.get('title')
     content = request.POST.get('content')
+    visibility = request.POST.get('visibility')
 #        post_type = request.POST.get('type') 
     author = get_object_or_404(Author, authorId=authorId)
 
@@ -615,7 +623,7 @@ def create_post(request, authorId):
     else:
         # Create new post
         if title and content:
-            new_post = Post.objects.create(title=title, content=content, author=author)
+            new_post = Post.objects.create(title=title, content=content, author=author, visibility=visibility)
             post_url = reverse('mysocial:post_detail', kwargs={'authorId': authorId, 'post_id': new_post.postId})
             new_post.url = request.build_absolute_uri(post_url)
             new_post.origin = request.build_absolute_uri(post_url)
