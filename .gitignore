@@ -3,7 +3,7 @@ venv/
 *.sqlite3
 node_modules
 staticfiles
-
+test_image_1*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
