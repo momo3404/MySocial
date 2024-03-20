@@ -236,6 +236,8 @@ class InboxView(APIView):
                         content=data.get('content'),
                         visibility=data.get('visibility', 'PUBLIC'),
                     )
+                    inbox_item = Inbox(author=author, inbox_item=json.dumps(data))
+                    inbox_item.save()
                     return Response({'detail': 'New post created.'}, status=status.HTTP_201_CREATED)
                 except IntegrityError:
                     return Response({'detail': 'IntegrityError, post could not be created.'}, status=status.HTTP_400_BAD_REQUEST)
