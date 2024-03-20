@@ -89,7 +89,7 @@
             <!-- Form Section for Creating and Editing Posts -->
             <div id="postFormSection" class="form-section">
                 <h2 id="formTitle" style="color: black;">Create New Post</h2>
-                <form id="postForm" action="{% url 'mysocial:create_post' authorId=author.authorId %}" method="post">
+                <form id="postForm" action="{% url 'mysocial:create_post' authorId=author.authorId %}" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     <input type="hidden" id="postId" name="post_id" value=""> <!-- Hidden field for post ID (empty for new posts) -->
                     <div class="mb-3">
@@ -237,6 +237,7 @@
             document.getElementById("postId").value = postId; // Set post ID for edits
             document.getElementById("title").value = title;
             document.getElementById("content").value = content;
+            document.getElementById("visibility").value = visibility;
             toggleForm();
         }
 

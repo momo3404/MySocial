@@ -623,6 +623,7 @@ def create_post(request, authorId):
     title = request.POST.get('title')
     content = request.POST.get('content')
     visibility = request.POST.get('visibility')
+    image = request.FILES.get('image')
 #        post_type = request.POST.get('type') 
     author = get_object_or_404(Author, authorId=authorId)
 
@@ -634,11 +635,12 @@ def create_post(request, authorId):
         post = get_object_or_404(Post, pk=post_id)
         post.title = title
         post.content = content
+        post.visibility = visibility
         post.save()
     else:
         # Create new post
         if title and content:
-            new_post = Post.objects.create(title=title, content=content, author=author, visibility=visibility)
+            new_post = Post.objects.create(title=title, content=content, author=author, visibility=visibility, image=image)
             post_url = reverse('mysocial:post_detail', kwargs={'authorId': authorId, 'post_id': new_post.postId})
             new_post.url = request.build_absolute_uri(post_url)
             new_post.origin = request.build_absolute_uri(post_url)
@@ -669,7 +671,8 @@ def create_post(request, authorId):
             
             followers = Follower.objects.filter(author=author)
             for relation in followers:
-                url = 'http://127.0.0.1:8000/mysocial/authors/'         # change later to find authors node url
+                host_url = relation.follower.host
+                url = f'{host_url}/mysocial/authors/'         # change later to find authors node url
                 author_id = relation.follower.authorId
                 print(author_id)
                 response = requests.post(f'{url}{author_id}/inbox/', json=inbox_item)
@@ -854,7 +857,8 @@ def share_post(request, post_id):
 
     followers = Follower.objects.filter(author=author)
     for relation in followers:
-        url = 'http://127.0.0.1:8000/mysocial/authors/'         # change later to find authors node url
+        host_url = relation.follower.host
+        url = f'{host_url}/mysocial/authors/'         # change later to find authors node url
         author_id = relation.follower.authorId
         response = requests.post(f'{url}{author_id}/inbox/', json=inbox_item)
 #        Inbox.objects.create(
