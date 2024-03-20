@@ -1,0 +1,1635 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+      "title": "MySocial API",
+      "description": "This is our API Documentation",
+      "version": "1.1.2",
+      "contact": {
+        "email": "albachac@ualberta.ca"
+      },
+      "license": {
+        "name": "MIT",
+        "url": "https://opensource.org/licenses/MIT"
+      }
+    },
+    "servers": [
+      {
+        "url": null
+      }
+    ],
+    "paths": {
+      "/mysocial/authors/": {
+        "get": {
+          "parameters": [
+            {
+              "in": "query",
+              "name": "page",
+              "schema": {
+                "type": "integer"
+              },
+              "description": "The page number of authors"
+            },
+            {
+              "in": "query",
+              "name": "size",
+              "schema": {
+                "type": "integer"
+              },
+              "description": "The number of authors to display per page"
+            }
+          ],
+          "tags": [
+            "Authors"
+          ],
+          "summary": "LOCAL, REMOTE",
+          "description": "Returns list of all authors on the server",
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "example": "authors",
+                        "description": "the type of object (authors object)"
+                      },
+                      "items": {
+                        "type": "array",
+                        "description": "list of objects (list of authors, paginated 20 authors per page by default)",
+                        "items": {
+                          "$ref": "#/components/schemas/Author"
+                        },
+                        "example": [
+                          {
+                            "type": "author",
+                            "id": "257793bf-9ce8-4afa-a23f-c7297784c7f9",
+                            "url": "https://www.youtube.com/watch?v=GViX8riaHX4&t=327s",
+                            "host": "https://discord.com/channels/@me/1062134221579239425",
+                            "displayName": "testuser1",
+                            "github": "http://github.com/testuser1",
+                            "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+                          },
+                          {
+                            "type": "author",
+                            "id": "aa579a3c-0cd9-42b0-9a94-794906c9322c",
+                            "url": "https://www.youtube.com/watch?v=GViX8riaHX4&t=327s",
+                            "host": "https://mysocial.herokuapp.com/",
+                            "displayName": "testuser2",
+                            "github": "http://github.com/testuser2",
+                            "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "5XX": {
+              "description": "Unexpected error"
+            }
+          }
+        }
+      },
+      "/mysocial/authors/{AUTHOR_ID}/": {
+        "parameters": [
+          {
+            "name": "AUTHOR_ID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the author",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "get": {
+          "tags": [
+            "Single Author"
+          ],
+          "summary": "LOCAL, REMOTE",
+          "description": "Returns profile of author with AUTHOR_ID",
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Author"
+                  },
+                  "example": {
+                    "type": "author",
+                    "id": "257793bf-9ce8-4afa-a23f-c7297784c7f9",
+                    "url": "https://www.youtube.com/watch?v=GViX8riaHX4&t=327s",
+                    "host": "https://discord.com/channels/@me/1062134221579239425",
+                    "displayName": "testuser1",
+                    "github": "http://github.com/testuser1",
+                    "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Not Found"
+            },
+            "5XX": {
+              "description": "Unexpected error"
+            }
+          }
+        },
+        "put": {
+          "tags": [
+            "Single Author"
+          ],
+          "summary": "LOCAL",
+          "description": "Update the author's profile",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Author"
+                },
+                "example": {
+                  "type": "author",
+                  "profileImage": "https://i.imgur.com/k7XVwpB.jpeg",
+                  "id": "257793bf-9ce8-4afa-a23f-c7297784c7f9",
+                  "url": "https://www.youtube.com/watch?v=GViX8riaHX4&t=327s",
+                  "host": "https://discord.com/channels/@me/1062134221579239425",
+                  "displayName": "testuser2",
+                  "github": "http://github.com/testuser1"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Author"
+                  },
+                  "example": {
+                    "type": "author",
+                    "profileImage": "https://i.imgur.com/k7XVwpB.jpeg",
+                    "id": "257793bf-9ce8-4afa-a23f-c7297784c7f9",
+                    "url": "https://www.youtube.com/watch?v=GViX8riaHX4&t=327s",
+                    "host": "https://discord.com/channels/@me/1062134221579239425",
+                    "displayName": "testuser2",
+                    "github": "http://github.com/testuser1"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request - error while serializing request body"
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "404": {
+              "description": "Not Found - Author doesn't exist",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/NotFound"
+                  }
+                }
+              }
+            },
+            "5XX": {
+              "description": "Unexpected error"
+            }
+          }
+        }
+      },
+      "/authors/{AUTHOR_ID}/posts/{POST_ID}/": {
+        "parameters": [
+          {
+            "name": "AUTHOR_ID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the author",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "POST_ID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the post",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "get": {
+          "tags": [
+            "Post"
+          ],
+          "summary": "LOCAL, REMOTE",
+          "description": "Get post object",
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Post"
+                  },
+                  "example": {
+                    "type": "post",
+                    "title": "Example Post 1",
+                    "id": "d465a270-9494-4820-98ba-d65ae3200bb9",
+                    "source": null,
+                    "origin": "http://127.0.0.1:8000/mysocial/posts/257793bf-9ce8-4afa-a23f-c7297784c7f9/d465a270-9494-4820-98ba-d65ae3200bb9/",
+                    "description": "This is an example post for testing.",
+                    "contentType": "post",
+                    "content": "This is the post body",
+                    "image": "iVBORw0KGgoAAAANSUhEUgAAAqgAAAJICAYAAACt/BbeAAAABmJLR0QA/wD/AP+gvaeTAACAAElEQVR42ux9d...",
+                    "author": {
+                      "type": "author",
+                      "id": "d569cd39-0a2d-411e-8d86-e8a063a18dea",
+                      "url": "https://www.youtube.com/watch?v=GViX8riaHX4&t=327s",
+                      "host": "https://www.youtube.com/watch?v=GViX8riaHX4&t=327s",
+                      "displayName": "testuser1",
+                      "github": "http://github.com/testuser1",
+                      "profileImage": "https://i.imgur.com/k7XVwp"
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "404": {
+              "description": "Not Found - Post doesn't exist",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/NotFound"
+                  }
+                }
+              }
+            },
+            "5XX": {
+              "description": "Unexpected error"
+            }
+          }
+        },
+        "post": {
+          "tags": [
+            "Post"
+          ],
+          "summary": "LOCAL",
+          "description": "Update post whose id is POST_ID",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Post"
+                },
+                "example": {
+                  "type": "post",
+                  "title": "Example Post 3 Modified",
+                  "id": "c48683c-40f4-47da-86dt-7f470d03449d",
+                  "source": null,
+                  "origin": "http://127.0.0.1:8000/mysocial/posts/aa579a3c-0cd9-42b0-9a94-794906c9322c/64f7cdc2-3b7f-4b9f-95db-4dfb44ea64c1/",
+                  "description": "example post for testing.",
+                  "contentType": "text/plain",
+                  "content": "This is the updated post body",
+                  "author": {
+                    "type": "author",
+                    "id": "8f3ceea1-7f18-465f-84d4-8f75de1d17a1",
+                    "url": "http://127.0.0.1:8000/mysocial/posts/aa579a3c-0cd9-42b0-9a94-794906c9322c/64f7cdc2-3b7f-4b9f-95db-4dfb44ea64c1/",
+                    "host": "http://127.0.0.1:8000/mysocial/posts/aa579a3c-0cd9-42b0-9a94-794906c9322c/64f7cdc2-3b7f-4b9f-95db-4dfb44ea64c1/",
+                    "displayName": "Gg",
+                    "github": "http://github.com/momo2",
+                    "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Post"
+                  },
+                  "example": {
+                    "type": "post",
+                    "title": "Example Post 3 Modified",
+                    "id": "c48683c-40f4-47da-86dt-7f470d03449d",
+                    "source": null,
+                    "origin": "http://127.0.0.1:8000/mysocial/posts/aa579a3c-0cd9-42b0-9a94-794906c9322c/64f7cdc2-3b7f-4b9f-95db-4dfb44ea64c1/",
+                    "description": "example post for testing.",
+                    "contentType": "text/plain",
+                    "content": "This is the updated post body",
+                    "author": {
+                      "type": "author",
+                      "id": "8f3ceea1-7f18-465f-84d4-8f75de1d17a1",
+                      "url": "http://127.0.0.1:8000/mysocial/posts/aa579a3c-0cd9-42b0-9a94-794906c9322c/64f7cdc2-3b7f-4b9f-95db-4dfb44ea64c1/",
+                      "host": "http://127.0.0.1:8000/mysocial/posts/aa579a3c-0cd9-42b0-9a94-794906c9322c/64f7cdc2-3b7f-4b9f-95db-4dfb44ea64c1/",
+                      "displayName": "Gg",
+                      "github": "http://github.com/momo2",
+                      "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request - error while serializing request body"
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "404": {
+              "description": "Not Found - Post doesn't exist",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/NotFound"
+                  }
+                }
+              }
+            },
+            "5XX": {
+              "description": "Unexpected error"
+            }
+          }
+        },
+        "delete": {
+          "tags": [
+            "Post"
+          ],
+          "summary": "LOCAL",
+          "description": "Delete the post whose id is POST_ID",
+          "responses": {
+            "204": {
+              "description": "No Content, Post successfully deleted"
+            },
+            "404": {
+              "description": "Not Found - Post doesn't exist",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/NotFound"
+                  }
+                }
+              }
+            },
+            "5XX": {
+              "description": "Unexpected error"
+            }
+          }
+        }
+      },
+      "/authors/{AUTHOR_ID}/posts/{POST_ID}/image": {
+        "parameters": [
+          {
+            "name": "AUTHOR_ID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the author",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "POST_ID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the post",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "get": {
+          "tags": [
+            "Image"
+          ],
+          "summary": "LOCAL, REMOTE",
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "image/png": {
+                  "schema": {
+                    "type": "string",
+                    "format": "binary",
+                    "example": "iVBORw0KGgoAAAANSUhEUgAAAqgAAAJICAYAAACt/BbeAAAABmJLR0QA/wD/AP+gvaeTAACAAElEQVR42ux9d..."
+                  }
+                },
+                "image/jpeg": {
+                  "schema": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "404": {
+              "description": "Not Found - Post doesn't have an image"
+            },
+            "5XX": {
+              "description": "Unexpected error"
+            }
+          }
+        }
+      },
+      "/authors/{AUTHOR_ID}/posts/{POST_ID}/comments": {
+        "parameters": [
+          {
+            "name": "AUTHOR_ID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the author",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "POST_ID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the post",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "get": {
+          "tags": [
+            "Comments"
+          ],
+          "summary": "LOCAL, REMOTE",
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "description": "List of comments on post whose id is POST_ID (paginated)",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "example": "comments"
+                      },
+                      "page": {
+                        "type": "integer",
+                        "example": 1
+                      },
+                      "size": {
+                        "type": "integer",
+                        "example": 5
+                      },
+                      "post": {
+                        "type": "object",
+                        "properties": {
+                          "example": {
+                            "type": "string",
+                            "example": "http://127.0.0.1:8000/mysocial/posts/aa579a3c-0cd9-42b0-9a94-794906c9322c/64f7cdc2-3b7f-4b9f-95db-4dfb44ea64c1/"
+                          },
+                          "id": {
+                            "type": "string",
+                            "example": "30cb41c0-c077-4291-9f4e-7ae8aa780fb7"
+                          }
+                        }
+                      },
+                      "comments": {
+                        "type": "array",
+                        "description": "Array of comment objects",
+                        "items": {
+                          "$ref": "#/components/schemas/Comment"
+                        },
+                        "example": [
+                          {
+                            "type": "comment",
+                            "id": "30cb41c0-c077-4291-9f4e-7ae8aa780fb7",
+                            "post": "b544efa0-c807-47c8-9abe-6a0d827fc4a6",
+                            "author": {
+                              "type": "author",
+                              "id": "07e7050f-4bf6-4249-8cde-6d254bddce9e",
+                              "url": "https://mysocial.herokuapp.com/authors/07e7050f-4bf6-4249-8cde-6d254bddce9e",
+                              "host": "https://mysocial.herokuapp.com/",
+                              "displayName": "testsocial123",
+                              "github": "http://github.com/john",
+                              "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+                            },
+                            "comment": "ayo",
+                            "contentType": "text/plain",
+                            "published": "2023-03-24T04:30:06.937Z"
+                          },
+                          {
+                            "type": "comment",
+                            "post_id": "b548683c-40f4-47da-86db-7f470d03443d",
+                            "id": "eb994077-3c95-47be-9d8b-207ef187443e",
+                            "author": {
+                              "type": "author",
+                              "id": "f2b6c0a5-117a-425f-abd5-30937c72d012",
+                              "url": "https://mysocial.herokuapp.com/authors/f2b6c0a5-117a-425f-abd5-30937c72d012",
+                              "host": "https://mysocial.herokuapp.com/",
+                              "displayName": "Gandalf the Grey",
+                              "github": "http://github.com/gandalfthegrey",
+                              "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+                            },
+                            "comment": "Shadowfax goes brrrr",
+                            "contentType": "text/markdown",
+                            "published": "2020-05-08T10:08:04.000Z"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "5XX": {
+              "description": "Unexpected error"
+            }
+          }
+        },
+        "post": {
+          "tags": [
+            "Comments"
+          ],
+          "summary": "LOCAL",
+          "description": "Add comment to post whose id is POST_ID; create comment object",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Comment"
+                },
+                "example": [
+                  {
+                    "type": "comment",
+                    "id": "30cb41c0-c077-4291-9f4e-7ae8aa780fb7",
+                    "post": "b544efa0-c807-47c8-9abe-6a0d827fc4a6",
+                    "author": {
+                      "type": "author",
+                      "id": "07e7050f-4bf6-4249-8cde-6d254bddce9e",
+                      "url": "https://mysocial.herokuapp.com/authors/07e7050f-4bf6-4249-8cde-6d254bddce9e",
+                      "host": "https://mysocial.herokuapp.com/",
+                      "displayName": "testsocial123",
+                      "github": "http://github.com/frodobaggins",
+                      "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Created",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Comment"
+                  },
+                  "example": {
+                    "type": "comment",
+                    "id": "30cb41c0-c077-4291-9f4e-7ae8aa780fb7",
+                    "post": "b544efa0-c807-47c8-9abe-6a0d827fc4a6",
+                    "author": {
+                      "type": "author",
+                      "id": "https://mysocial.herokuapp.com/authors/07e7050f-4bf6-4249-8cde-6d254bddce9e",
+                      "_id": "07e7050f-4bf6-4249-8cde-6d254bddce9e",
+                      "url": "https://mysocial.herokuapp.com/authors/07e7050f-4bf6-4249-8cde-6d254bddce9e",
+                      "host": "https://mysocial.herokuapp.com/",
+                      "displayName": "testsocial123",
+                      "github": "http://github.com/frodobaggins",
+                      "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request - error while serializing request body"
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "5XX": {
+              "description": "Unexpected error"
+            }
+          }
+        }
+      },
+      "/authors/{AUTHOR_ID}/posts/{POST_ID}/comments/{COMMENT_ID}": {
+        "parameters": [
+          {
+            "name": "AUTHOR_ID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the author",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "POST_ID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the post",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "COMMENT_ID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the comment",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "get": {
+          "tags": [
+            "Comments"
+          ],
+          "summary": "LOCAL (EXTRA)",
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Comment"
+                  },
+                  "example": {
+                    "type": "comment",
+                    "id": "30cb41c0-c077-4291-9f4e-7ae8aa780fb7",
+                    "post": "b544efa0-c807-47c8-9abe-6a0d827fc4a6",
+                    "author": {
+                      "type": "author",
+                      "id": "https://mysocial.herokuapp.com/authors/07e7050f-4bf6-4249-8cde-6d254bddce9e",
+                      "_id": "07e7050f-4bf6-4249-8cde-6d254bddce9e",
+                      "url": "https://mysocial.herokuapp.com/authors/07e7050f-4bf6-4249-8cde-6d254bddce9e",
+                      "host": "https://mysocial.herokuapp.com/",
+                      "displayName": "testsocial123",
+                      "github": "http://github.com/frodobaggins",
+                      "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "404": {
+              "description": "Not Found - Comment doesn't exist",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/NotFound"
+                  }
+                }
+              }
+            },
+            "5XX": {
+              "description": "Unexpected error"
+            }
+          }
+        }
+      },
+      "/authors/{AUTHOR_ID}/followers/": {
+        "parameters": [
+          {
+            "name": "AUTHOR_ID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the author",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "get": {
+          "summary": "LOCAL, REMOTE",
+          "description": "Returns the followers of author with AUTHOR_ID",
+          "tags": [
+            "Followers"
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "default": "followers",
+                        "description": "the type of object (followers)"
+                      },
+                      "items": {
+                        "type": "array",
+                        "description": "list of objects (list of authors)",
+                        "items": {
+                          "$ref": "#/components/schemas/Author"
+                        },
+                        "example": [
+                          {
+                            "type": "author",
+                            "id": "https://mysocial.herokuapp.com/authors/d569cd39-0a2d-411e-8d86-e8a063a18dea",
+                            "_id": "d569cd39-0a2d-411e-8d86-e8a063a18dea",
+                            "host": "https://mysocial.herokuapp.com/",
+                            "displayName": "testuser1",
+                            "url": "https://mysocial.herokuapp.com/authors/d569cd39-0a2d-411e-8d86-e8a063a18dea",
+                            "github": "http://github.com/testuser1",
+                            "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+                          },
+                          {
+                            "type": "author",
+                            "id": "38f57b34-f1ff-4f3b-9e81-2be731a14a0e",
+                            "host": "https://mysocial.herokuapp.com/",
+                            "url": "https://mysocial.herokuapp.com/authors/38f57b34-f1ff-4f3b-9e81-2be731a14a0e",
+                            "displayName": "testuser2",
+                            "github": "http://github.com/testuser2",
+                            "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "404": {
+              "description": "Not Found, author does not exist"
+            },
+            "5XX": {
+              "description": "Unexpected error"
+            }
+          }
+        }
+      },
+      "/authors/{AUTHOR_ID}/followers/{FOREIGN_AUTHOR_ID}/": {
+        "parameters": [
+          {
+            "name": "AUTHOR_ID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the author",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "FOREIGN_AUTHOR_ID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the author (url)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "delete": {
+          "summary": "LOCAL",
+          "description": "Removes FOREIGN_AUTHOR_ID as a follower of AUTHOR_ID",
+          "tags": [
+            "Followers"
+          ],
+          "responses": {
+            "204": {
+              "description": "No Content, The follower has been deleted"
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "404": {
+              "description": "Not Found, Either the author or the follower does not exist"
+            },
+            "5XX": {
+              "description": "Unexpected error"
+            }
+          }
+        },
+        "put": {
+          "summary": "LOCAL (AUTHENTICATED)",
+          "description": "Add FOREIGN_AUTHOR_ID as a follower of AUTHOR_ID",
+          "tags": [
+            "Followers"
+          ],
+          "responses": {
+            "201": {
+              "description": "Created, The follower has been added"
+            },
+            "400": {
+              "description": "Bad Request"
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "404": {
+              "description": "Not Found, ither the author or follower does not exist",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/NotFound"
+                  }
+                }
+              }
+            },
+            "409": {
+              "description": "Conflict, this author is already a follower"
+            },
+            "5XX": {
+              "description": "Unexpected error"
+            }
+          }
+        },
+        "get": {
+          "summary": "LOCAL",
+          "description": "Checks if FOREIGN_AUTHOR_ID is a follower of AUTHOR_ID by returning true or false",
+          "tags": [
+            "Followers"
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "exists": "true"
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "404": {
+              "description": "Not Found, author does not exist",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/NotFound"
+                  }
+                }
+              }
+            },
+            "5XX": {
+              "description": "Unexpected error"
+            }
+          }
+        }
+      },
+      "/authors/{AUTHOR_ID}/posts/{POST_ID}/likes": {
+        "parameters": [
+          {
+            "name": "AUTHOR_ID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the author",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "POST_ID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the post",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "get": {
+          "summary": "LOCAL, REMOTE",
+          "description": "Get a list of likes from other authors on AUTHOR_ID’s post POST_ID",
+          "tags": [
+            "Likes"
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "example": "post_likes"
+                      },
+                      "items": {
+                        "type": "array",
+                        "description": "list of post or comments that the author has liked",
+                        "items": {
+                          "$ref": "#/components/schemas/Like"
+                        },
+                        "example": [
+                          {
+                            "type": "Like",
+                            "context": "https://www.w3.org/ns/activitystreams",
+                            "author": {
+                              "type": "author",
+                              "id": "f2b6c0a5-117a-425f-abd5-30937c72d012",
+                              "url": "https://mysocial.herokuapp.com/authors/f2b6c0a5-117a-425f-abd5-30937c72d012",
+                              "host": "https://mysocial.herokuapp.com/",
+                              "displayName": "Lara Croft",
+                              "github": "http://github.com/laracroft",
+                              "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+                            },
+                            "summary": "Lara Croft Likes your post",
+                            "object": "https://mysocial.herokuapp.com/authors/f2b6c0a5-117a-425f-abd5-30937c72d012/posts/764efa883dda1e11db47671c4a3bbd9e"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "404": {
+              "description": "Not Found, Either the author or the post does not exist",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/NotFound"
+                  }
+                }
+              }
+            },
+            "5XX": {
+              "description": "Unexpected error"
+            }
+          }
+        }
+      },
+      "/authors/{AUTHOR_ID}/posts/{POST_ID}/comments/{COMMENT_ID}/likes": {
+        "parameters": [
+          {
+            "name": "AUTHOR_ID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the author",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "POST_ID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the post",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "COMMENT_ID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the comment",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "get": {
+          "summary": "LOCAL, REMOTE",
+          "description": "Get a list of likes from other authors on AUTHOR_ID’s post POST_ID comment COMMENT_ID",
+          "tags": [
+            "Likes"
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "example": "comment_likes"
+                      },
+                      "items": {
+                        "type": "array",
+                        "description": "list of post or comments that the author has liked",
+                        "items": {
+                          "$ref": "#/components/schemas/Like"
+                        },
+                        "example": [
+                          {
+                            "type": "Like",
+                            "context": "https://www.w3.org/ns/activitystreams",
+                            "author": {
+                              "type": "author",
+                              "id": "f2b6c0a5-117a-425f-abd5-30937c72d012",
+                              "url": "https://mysocial.herokuapp.com/authors/f2b6c0a5-117a-425f-abd5-30937c72d012",
+                              "host": "https://mysocial.herokuapp.com/",
+                              "displayName": "Gandalf the Grey",
+                              "github": "http://github.com/gandalfthegrey",
+                              "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+                            },
+                            "summary": "Gandalf the Grey Likes your comment",
+                            "object": "https://mysocial.herokuapp.com/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e/posts/309c235f-ac9f-4914-b530-29b414ebfa18/comments/18f824d9-213f-4e27-a17c-8238635539e9"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "404": {
+              "description": "Not Found, Either the author or the comment does not exist",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/NotFound"
+                  }
+                }
+              }
+            },
+            "5XX": {
+              "description": "Unexpected error"
+            }
+          }
+        }
+      },
+      "/authors/{AUTHOR_ID}/liked/": {
+        "parameters": [
+          {
+            "name": "AUTHOR_ID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the author",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "get": {
+          "summary": "LOCAL, REMOTE",
+          "description": "Get a list of the public things that AUTHOR_ID liked",
+          "tags": [
+            "Liked"
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "example": "liked"
+                      },
+                      "items": {
+                        "type": "array",
+                        "description": "list of post or comments that the author has liked",
+                        "items": {
+                          "$ref": "#/components/schemas/Like"
+                        },
+                        "example": [
+                          {
+                            "type": "Like",
+                            "context": "https://www.w3.org/ns/activitystreams",
+                            "author": {
+                              "type": "author",
+                              "id": "f2b6c0a5-117a-425f-abd5-30937c72d012",
+                              "url": "https://mysocial.herokuapp.com/authors/f2b6c0a5-117a-425f-abd5-30937c72d012",
+                              "host": "https://mysocial.herokuapp.com/",
+                              "displayName": "Gandalf the Grey",
+                              "github": "http://github.com/gandalfthegrey",
+                              "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+                            },
+                            "summary": "Gandalf the Grey Likes your post",
+                            "object": "https://mysocial.herokuapp.com/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e/posts/309c235f-ac9f-4914-b530-29b414ebfa18/comments/18f824d9-213f-4e27-a17c-8238635539e9"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "404": {
+              "description": "Author not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/NotFound"
+                  }
+                }
+              }
+            },
+            "5XX": {
+              "description": "Unexpected error"
+            }
+          }
+        }
+      },
+      "/authors/{AUTHOR_ID}/inbox/": {
+        "parameters": [
+          {
+            "name": "AUTHOR_ID",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the author",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "get": {
+          "summary": "LOCAL,",
+          "description": "If authenticated, get a list of posts sent to AUTHOR_ID",
+          "tags": [
+            "Inbox"
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "default": "inbox"
+                      },
+                      "author": {
+                        "type": "string",
+                        "example": "https://mysocial.herokuapp.com/authors/6e81afb3-f4eb-48f1-9d26-445b9aa197ea",
+                        "description": "the type of object (followers)"
+                      },
+                      "items": {
+                        "type": "array",
+                        "description": "list of \"post\" objects",
+                        "items": {
+                          "$ref": "#/components/schemas/Post"
+                        },
+                        "example": [
+                          {
+                            "type": "post",
+                            "title": "Example Post 2",
+                            "id": "b548683c-40f4-47da-86db-7f470d03443d",
+                            "source": "https://mysocial.herokuapp.com",
+                            "origin": "https://mysocial.herokuapp.com",
+                            "description": "This is an example post for testing",
+                            "contentType": "text/plain",
+                            "content": "This is the post body",
+                            "author": {
+                              "type": "author",
+                              "id": "8f3ceea1-7f18-465f-84d4-8f75de1d17a1",
+                              "url": "https://mysocial.herokuapp.com/authors/8f3ceea1-7f18-465f-84d4-8f75de1d17a1",
+                              "host": "https://mysocial.herokuapp.com/",
+                              "displayName": "Aragorn, Son of Arathorn",
+                              "github": "http://github.com/aragorn",
+                              "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+                            },
+                            "categories": [
+                              "tags",
+                              "are",
+                              "fun"
+                            ],
+                            "count": 0,
+                            "comments": "https://mysocial.herokuapp.com/authors/d569cd39-0a2d-411e-8d86-e8a063a18dea/posts/b544efa0-c807-47c8-9abe-6a0d827fc4a6/comments",
+                            "visibility": "PUBLIC",
+                            "unlisted": false,
+                            "commentSrc": {
+                              "type": "comments",
+                              "page": 1,
+                              "size": 5,
+                              "post": "https://mysocial.herokuapp.com/api/authors/d569cd39-0a2d-411e-8d86-e8a063a18dea/posts/b544efa0-c807-47c8-9abe-6a0d827fc4a6",
+                              "id": "8f3ceea1-7f18-465f-84d4-8f75de1d17a1",
+                              "comments": []
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "404": {
+              "description": "Author not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/NotFound"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "post": {
+          "summary": "LOCAL, REMOTE",
+          "description": "Send an inbox_item (\"post\") to AUTHOR_ID. <br><br>\n**The following types can be sent:** post, Follow, Like, comment",
+          "requestBody": {
+            "description": "For local or remote node use, if you want to **add a follow request**, having the \"type\", \"actor\", and \"object\" fields are required, but the summary field is optional (since the summary will be generated on the backend)<br><br>\n**For local node use**, if you want to **update a follow request's status**, you must add an extra field called \"state\" with a value of either \"Accepted\" or \"Declined\". This helps to distingish between which requests have been handled already. <br><br>\nFollow requests in the inbox that do not have the \"state\" field means that it is currently pending. Follow requests that do have the \"state\" field means that it has either been accepted or declined already. In other words, a \"state\" field will be added to the Follow item in the inbox if it has been \"Accepted\" or \"Declined\", in which case you don't have to display the follow request anymore.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "example": "Follow"
+                    },
+                    "actor": {
+                      "type": "object",
+                      "example": {
+                        "type": "author",
+                        "id": "https://mysocial.herokuapp.com/authors/f2b2b415-250b-43e6-8a5b-31834d12be0d",
+                        "_id": "f2b2b415-250b-43e6-8a5b-31834d12be0d",
+                        "url": "https://mysocial.herokuapp.com/authors/f2b2b415-250b-43e6-8a5b-31834d12be0d",
+                        "host": "https://mysocial.herokuapp.com/",
+                        "displayName": "Frodo Baggins",
+                        "github": "http://github.com/frodobaggins",
+                        "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+                      }
+                    },
+                    "object": {
+                      "type": "object",
+                      "example": {
+                        "type": "author",
+                        "id": "f2b6c0a5-117a-425f-abd5-30937c72d012",
+                        "url": "https://mysocial.herokuapp.com/authors/f2b6c0a5-117a-425f-abd5-30937c72d012",
+                        "host": "https://mysocial.herokuapp.com/",
+                        "displayName": "Gandalf the Grey",
+                        "github": "http://github.com/gandalfthegrey",
+                        "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+                      }
+                    },
+                    "summary": {
+                      "type": "string",
+                      "example": "Frodo Baggins wants to follow Gandalf the Grey"
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "actor",
+                    "object"
+                  ]
+                }
+              }
+            }
+          },
+          "tags": [
+            "Inbox"
+          ],
+          "responses": {
+            "200": {
+              "description": "OK, The follow request now has a state of either \"Accepted\" or \"Declined\""
+            },
+            "201": {
+              "description": "Created, The follow request has been created"
+            },
+            "400": {
+              "description": "Bad Request (format may not be correct)"
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "404": {
+              "description": "Author not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/NotFound"
+                  }
+                }
+              }
+            },
+            "409": {
+              "description": "You're sending a duplicate \"post\""
+            },
+            "5XX": {
+              "description": "Unexpected error"
+            }
+          }
+        },
+        "delete": {
+          "summary": "LOCAL",
+          "description": "Delete all inbox_items (\"posts\") in AUTHOR_ID's inbox. <br><br>",
+          "tags": [
+            "Inbox"
+          ],
+          "responses": {
+            "204": {
+              "description": "No Content, The inbox has been cleared"
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "404": {
+              "description": "Author not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/NotFound"
+                  }
+                }
+              }
+            },
+            "5XX": {
+              "description": "Unexpected error"
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "Author": {
+          "type": "object",
+          "description": "author object",
+          "required": [
+            "type",
+            "id",
+            "url",
+            "host",
+            "displayName",
+            "github",
+            "profileImage"
+          ],
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "the uuid of the author"
+            },
+            "url": {
+              "type": "string",
+              "description": "url of author profile on server (same as id)"
+            },
+            "host": {
+              "type": "string",
+              "description": "hostname of this author"
+            },
+            "displayName": {
+              "type": "string"
+            },
+            "github": {
+              "type": "string",
+              "description": "url to this authors github"
+            },
+            "profileImage": {
+              "type": "string",
+              "description": "url to profile image of author"
+            }
+          }
+        },
+        "Post": {
+          "type": "object",
+          "description": "post object",
+          "required": [
+            "type",
+            "title",
+            "id",
+            "source",
+            "origin",
+            "description",
+            "contentType",
+            "author",
+            "count",
+            "comments",
+            "published",
+            "unlisted",
+            "visibility"
+          ],
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "the uuid of the post"
+            },
+            "source": {
+              "type": "string"
+            },
+            "origin": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "contentType": {
+              "type": "string"
+            },
+            "content": {
+              "type": "string"
+            },
+            "image": {
+              "type": "string"
+            },
+            "author": {
+              "$ref": "#/components/schemas/Author"
+            },
+            "categories": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "count": {
+              "type": "integer"
+            },
+            "comments": {
+              "type": "string"
+            },
+            "published": {
+              "type": "string"
+            },
+            "unlisted": {
+              "type": "boolean"
+            },
+            "visibility": {
+              "type": "string"
+            },
+            "commentSrc": {
+              "type": "object"
+            }
+          }
+        },
+        "Comment": {
+          "type": "object",
+          "description": "comment object",
+          "required": [
+            "type",
+            "id",
+            "author",
+            "comment",
+            "contentType",
+            "published"
+          ],
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "the id of the comment"
+            },
+            "post": {
+              "type": "string",
+              "description": "the id of the post"
+            },
+            "author": {
+              "$ref": "#/components/schemas/Author"
+            },
+            "comment": {
+              "type": "string"
+            },
+            "contentType": {
+              "type": "string"
+            },
+            "published": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        },
+        "Follow": {
+          "type": "object",
+          "description": "follow object",
+          "required": [
+            "type",
+            "actor",
+            "object"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "example": "Follow"
+            },
+            "actor": {
+              "$ref": "#/components/schemas/Author"
+            },
+            "object": {
+              "$ref": "#/components/schemas/Author"
+            },
+            "summary": {
+              "type": "string"
+            },
+            "state": {
+              "type": "string"
+            }
+          }
+        },
+        "Like": {
+          "type": "object",
+          "description": "like object",
+          "required": [
+            "type",
+            "context",
+            "author",
+            "object"
+          ],
+          "properties": {
+            "context": {
+              "type": "string",
+              "example": "https://www.w3.org/ns/activitystreams"
+            },
+            "summary": {
+              "type": "string",
+              "example": "Lara Croft Likes your post"
+            },
+            "type": {
+              "type": "string",
+              "example": "Like"
+            },
+            "author": {
+              "$ref": "#/components/schemas/Author"
+            },
+            "object": {
+              "type": "string",
+              "example": "https://mysocial.herokuapp.com/api/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e/posts/764efa883dda1e11db47671c4a3bbd9e"
+            }
+          }
+        },
+        "NotFound": {
+          "type": "object",
+          "properties": {
+            "detail": {
+              "type": "string"
+            }
+          },
+          "example": {
+            "detail": "Not found."
+          }
+        }
+      }
+    }
+  }

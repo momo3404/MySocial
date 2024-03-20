@@ -46,6 +46,7 @@ INSTALLED_APPS = [
 
     'mysocial',
     'rest_framework',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
