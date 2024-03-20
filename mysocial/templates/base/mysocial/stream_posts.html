@@ -176,7 +176,7 @@
                                     <img src="{{ post.image.url }}" alt="{{ post.title }}" style="max-width: 100px;">
                                 {% else %}
                                     <!-- Text or Commonmark Post -->
-                                    <p>{{ post.content }}</p>
+                                    <div class="markdown-content">{{ post.content }}</div>
                                 {% endif %}
                             </div>
                             <div class="card-footer post-footer d-flex justify-content-between align-items-center">
@@ -217,6 +217,7 @@
             </a>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <script>
         function toggleForm() {
@@ -246,6 +247,19 @@
             const postElement = document.getElementById(`post-${postId}`);
             postElement.remove();
         }
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+        const renderer = new marked.Renderer();
+        marked.setOptions({
+            renderer: renderer,
+            gfm: true,
+            sanitize: false 
+        });
+        document.querySelectorAll('.markdown-content').forEach((element) => {
+            const rawMarkdown = element.textContent;
+            element.innerHTML = marked.parse(rawMarkdown);
+        });
+    });
 
         
     </script>

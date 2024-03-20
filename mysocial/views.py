@@ -28,6 +28,7 @@ import base64
 from .forms import RegisterForm
 from .models import *
 from .serializers import AuthorSerializer, FollowerSerializer, FollowRequestSerializer, PostSerializer, CommentSerializer, LikeSerializer
+import commonmark
 
 # Create your views here.
 def index(request):
@@ -626,9 +627,16 @@ def create_post(request, authorId):
     image = request.FILES.get('image')
 #        post_type = request.POST.get('type') 
     author = get_object_or_404(Author, authorId=authorId)
+    markup = request.POST.get('markup', '') == 'on'
 
 #        if post_type == 'IMAGE':
 #            image = request.FILES.get('image')
+    
+    if markup:
+        parser = commonmark.Parser()
+        renderer = commonmark.HtmlRenderer()
+        ast = parser.parse(content)
+        content = renderer.render(ast)
 
     if post_id:
         # Update existing post
