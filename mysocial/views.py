@@ -539,23 +539,33 @@ def display_stream(request, authorId):
     template_name = 'base/mysocial/stream_posts.html'
     action = request.GET.get('action', 'all') 
     author = get_object_or_404(Author, authorId=authorId)
-    posts = Post.objects.all().order_by('-published')
+    posts = Post.objects.exclude(visibility='UNLISTED').order_by('-published')
     visible_posts = []
+
+    # if action == 'friends':
+    #     # Get IDs of friends (both following and followers to consider mutual friendships)
+    #     friends_ids = author.get_mutual_follows()
+    #     mutual_follows_ids = [author.authorId for author in friends_ids]
+
+    #     # Include the author's own posts in the stream as well
+    #     visible_posts = posts.filter(author__authorId__in=friends_ids) | posts.filter(author=author)
+        
+    # else:  # Default action 'all', excluding 'UNLISTED' as per the initial queryset
+    #     visible_posts = posts
+
 
     if action == 'all':
 
         # Filter posts based on visibility for the current user
         visible_posts = []
         for post in posts:
-            if post.visibility == 'PUBLIC' or 'UNLISTED':
+            if post.visibility == 'PUBLIC':
                 visible_posts.append(post)
             elif post.visibility == 'PRIVATE':
                 if author.is_friend(post.author) or author == post.author:
                     visible_posts.append(post)
 
-        #visible_posts = [post for post in posts if post.visibility == 'PUBLIC' or (post.visibility == 'PRIVATE' and (author.is_friend(post.author) or author == post.author))]
-
-    elif action == 'following':
+    elif action == 'friends':
 
         # Filter posts based on visibility for the current user
         visible_posts = []
@@ -566,13 +576,6 @@ def display_stream(request, authorId):
 
         visible_posts = [post for post in posts if author.is_friend(post.author) ]
     
-    elif action == 'unlisted':
-
-        visible_posts = []
-        for post in posts:
-            if post.visibility == 'UNLISTED':
-                    visible_posts.append(post)
-
     context = {
         'posts': visible_posts,
         'author': author,
@@ -1079,3 +1082,27 @@ def friends_list(request, author_id):
     }
 
     return render(request, 'base/mysocial/friends_list.html', context)
+
+@login_required
+def post_detail(request, authorId, post_id):
+    post = get_object_or_404(Post, id=post_id, author__authorId=authorId)
+    
+    current_user_author = request.user.author
+
+    # Check if the post is private
+    if post.visibility == 'PRIVATE':
+        # Check if the viewer is the author of the post or a mutual follower
+        mutual_follows = current_user_author.get_mutual_follows()
+        
+        if post.author != current_user_author and post.author not in mutual_follows:
+            raise Http404("You do not have permission to view this post.")
+            
+    # # For UNLISTED posts
+    # elif post.visibility == 'UNLISTED':
+    #     # allow only the author to view the post or extend it to specific users
+    #     if post.author != current_user_author:
+    #         raise Http404("You do not have permission to view this post.")
+    
+    # If the checks pass, render the post detail view
+    context = {'post': post}
+    return render(request, 'base/mysocial/post_detail.html', context)

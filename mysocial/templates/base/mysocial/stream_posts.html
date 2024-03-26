@@ -56,10 +56,34 @@
         .delete-btn i {
             font-weight: bold; /* Make the icon bolder */
         }
+        
+
+        .navbar {
+            border-radius: 0.25rem;
+        }
+    
+        .navbar {
+            background-color: #546E7A;
+            padding: 0.5rem 1rem;
+        }
+    
+        .navbar-brand {
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.75rem;
+        }
+    
+        .nav-link {
+            font-size: 1rem;
+            color: #8D99AE;
+        }
+    
+        .nav-link.active {
+            color: #3F88C5;
+        }
     </style>
 </head>
 
-<nav class="navbar navbar-expand-lg navbar-light" style="background-color: #DBB630;">
+<nav class="navbar navbar-expand-lg navbar-light" style="background-color: #acd0ec;">
     <div class="container-fluid">
       <a class="navbar-brand" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 150%;" href="{% url 'mysocial:login' %}">MySocial</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
@@ -86,6 +110,18 @@
               <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:remote'%}">Connect</a>
             </li>
           </ul>
+        <ul class="navbar-nav">
+            <li class="nav-item">
+            <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:friends_list' author.authorId %}">Friends</a>
+            </li>
+        </ul>
+        {% if viewing_own_profile %}
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:edit_profile' author.authorId %}">Edit Profile</a>
+                </li>
+            </ul>
+        {% endif %}
       </div>
     </div>
 </nav>
@@ -100,8 +136,7 @@
                 <!-- Form for showing all posts -->
                 <form action="" method="get">
                     <button style= "margin-bottom: 15px; background-color:#DBB630; color:#0056b3;" type="submit" name="action" value="all">All Posts</button>
-                    <button style= "margin-bottom: 15px; background-color:#DBB630; color:#0056b3;" type="submit" name="action" value="following">Following</button>
-                    <button style= "margin-bottom: 15px; background-color:#DBB630; color:#0056b3;" type="submit" name="action" value="unlisted">Unlisted</button>
+                    <button style= "margin-bottom: 15px; background-color:#DBB630; color:#0056b3;" type="submit" name="action" value="friends">Friends</button>
                 </form>
 
                 </div>

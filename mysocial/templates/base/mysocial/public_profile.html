@@ -21,7 +21,7 @@
         }
     
         .navbar {
-            background-color: #546E7A; /* Dark blue-grey */
+            background-color: #546E7A;
             padding: 0.5rem 1rem;
         }
     
@@ -46,6 +46,7 @@
             justify-content: center;
             margin: 20px auto;
             max-width: 800px;
+            
         }
     
         .post-card {
@@ -90,13 +91,27 @@
         .btn-primary, .btn-secondary {
             margin: 10px;
             border: none;
-            background-color: #546E7A; 
-            color: white;
+            background-color: #acd0ec; 
+            color: black;
+        }
+
+        .btn-info {
+            background-color: #acd0ec;
+            color: black;
         }
     
         .btn-primary:hover, .btn-secondary:hover {
             opacity: 0.9;
         }
+        .author-name {
+            color: #d0dfd8;
+            text-decoration: none;
+        }
+
+        .author-name:hover {
+            color: #82c5dc;
+        }
+
     </style>
     
 </head>
@@ -147,7 +162,9 @@
 <body class="h-100 gradient-form" style="background-color: #2d6088;">
     <div class="text-center">
         <div class="center" style="color: #FAFAFA;"> 
-            <h1>{{ author.displayName }}</h1>
+            <h1>
+                <a href="{{ author.url }}" class="author-name">{{ author.displayName }}</a>
+            </h1>
             {% if author.profileImage %}
                 <img src="{{ author.profileImage.url }}" alt="Profile image">
             {% else %}
@@ -156,7 +173,6 @@
             {% if author.bio %}
                 <p><strong>Bio:</strong> {{ author.bio }}</p>
             {% endif %}
-            <a href="{{ author.url }}" style="color:#b0eec6;">Profile URL: {{ author.url }} </a>
         </div>
         <a href="{% url 'mysocial:github-activity' author_id=author.authorId %}" class="btn btn-secondary">View GitHub Activity</a>
     </div>
