@@ -1064,4 +1064,18 @@ def friends_list(request, author_id):
     author = get_object_or_404(Author, authorId=author_id)
 
     friends = author.get_mutual_follows()
-    return render(request, 'base/mysocial/friends_list.html', {'friends': friends})
+
+    # Followers
+    followers = author.get_followers()
+
+    # Following
+    following = author.get_following()
+
+    context = {
+        'author': author,
+        'friends': friends,
+        'followers': followers,
+        'following': following,
+    }
+
+    return render(request, 'base/mysocial/friends_list.html', context)

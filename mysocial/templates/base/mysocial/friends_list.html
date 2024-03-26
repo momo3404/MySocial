@@ -44,6 +44,28 @@
                 <div class="alert alert-info">No mutual friends found.</div>
             {% endfor %}
         </div>
+
+        <h1>Followers</h1>
+        <div class="list-group">
+            {% for follower in followers %}
+                <a href="{% url 'mysocial:public_profile' follower.authorId %}" class="list-group-item list-group-item-action">
+                    {{ follower.displayName }}
+                </a>
+            {% empty %}
+                <div class="alert alert-info">No followers found.</div>
+            {% endfor %}
+        </div>
+
+            <h1>Following</h1>
+            <div class="list-group">
+                {% for follow in following %}
+                    <a href="{% url 'mysocial:public_profile' follow.authorId %}" class="list-group-item list-group-item-action">
+                        {{ follow.displayName }}
+                    </a>
+                {% empty %}
+                    <div class="alert alert-info">Not following anyone.</div>
+                {% endfor %}
+            </div>
     </div>
 </body>
 </html>
