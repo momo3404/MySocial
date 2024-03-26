@@ -1051,7 +1051,7 @@ def send_remote_follow(request):
         }
         node = Node.objects.get(node_id=node_id)
         
-        response = requests.post(f"{request.POST.get('object_host')}authors/{object_id}/inbox/", json=data, auth=HTTPBasicAuth(node.username, node.password))
+        response = requests.post(f"{object_id}/inbox/", json=data, auth=HTTPBasicAuth(node.username, node.password))
         
         if response.status_code == 201:
             return JsonResponse({'message': 'Follow request sent successfully.'}, status=201)
