@@ -420,6 +420,8 @@ def public_profile(request, author_id):
     already_following = False
     follow_requested = False
     viewing_own_profile = False
+    viewing_friend_profile = False
+
     if request.user.is_authenticated:
         try:
             user_author = request.user.author
@@ -427,6 +429,10 @@ def public_profile(request, author_id):
             already_following = Follower.objects.filter(author=author, follower=user_author).exists()
             follow_requested = FollowRequest.objects.filter(actor=user_author, object=author).exists()
             print(already_following)
+
+            if not viewing_own_profile:
+                    viewing_friend_profile = user_author.is_friend(author)
+
         except Author.DoesNotExist:
             pass
 
@@ -436,6 +442,7 @@ def public_profile(request, author_id):
         'already_following': already_following,
         'follow_requested': follow_requested,
         'viewing_own_profile': viewing_own_profile,
+        'viewing_friend_profile': viewing_friend_profile,
     }
     
     return render(request, 'base/mysocial/public_profile.html', context)
