@@ -763,16 +763,6 @@ class PostDetailView(View):
             else:
                 return HttpResponse('Forbidden', status=403)
 
-def display_post(request, authorId, post_id):
-    post = get_object_or_404(Post, postId=post_id)
-    author = get_object_or_404(Author, authorId=authorId)
-    comments = Comment.objects.filter(post=post).order_by('-published')
-
-    if post.visibility == 'PUBLIC' or (post.visibility == 'PRIVATE' and author.is_friend(post.author) or author == post.author):
-        context = {'post': post, 'author': author, 'comments': comments}
-    
-    return render(request, 'base/mysocial/post_detail.html', context)
-
 @login_required
 @require_POST
 def like_post(request, post_id):
@@ -1084,25 +1074,18 @@ def friends_list(request, author_id):
     return render(request, 'base/mysocial/friends_list.html', context)
 
 @login_required
-def post_detail(request, authorId, post_id):
-    post = get_object_or_404(Post, id=post_id, author__authorId=authorId)
-    
-    current_user_author = request.user.author
+def display_post(request, authorId, post_id):
+    post = get_object_or_404(Post, postId=post_id)
+    comments = Comment.objects.filter(post=post).order_by('-published')
+    author = request.user.author
 
-    # Check if the post is private
     if post.visibility == 'PRIVATE':
-        # Check if the viewer is the author of the post or a mutual follower
-        mutual_follows = current_user_author.get_mutual_follows()
-        
-        if post.author != current_user_author and post.author not in mutual_follows:
-            raise Http404("You do not have permission to view this post.")
+        if post.author != author:
+            mutual_follows = author.get_mutual_follows()
+
+            if post.author not in mutual_follows:
+                raise Http404("You do not have permission to view this post.")
             
-    # # For UNLISTED posts
-    # elif post.visibility == 'UNLISTED':
-    #     # allow only the author to view the post or extend it to specific users
-    #     if post.author != current_user_author:
-    #         raise Http404("You do not have permission to view this post.")
+    context = {'post': post, 'author': post.author, 'comments': comments}
     
-    # If the checks pass, render the post detail view
-    context = {'post': post}
     return render(request, 'base/mysocial/post_detail.html', context)
