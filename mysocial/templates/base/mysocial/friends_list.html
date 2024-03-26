@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mutual Friends</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+
+        body {
+            background-color: #2d6088;
+            color: #F8F7F9;
+        }
+
+        .container h1 {
+            margin-top: 20px;
+            margin-bottom: 30px;
+            color: #eee;
+        }
+
+        .list-group-item {
+            border-color: #455A64;
+            color: #455A64;
+        }
+
+        .list-group-item:hover {
+            background-color: var(--link-hover-color);
+            color: white;
+        }
+
+        .alert-info {
+            background-color: white;
+            color: #455A64;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Mutual Friends</h1>
+        <div class="list-group">
+            {% for friend in friends %}
+                <a href="{% url 'mysocial:public_profile' friend.authorId %}" class="list-group-item list-group-item-action">
+                    {{ friend.displayName }}
+                </a>
+            {% empty %}
+                <div class="alert alert-info">No mutual friends found.</div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

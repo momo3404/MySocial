@@ -40,5 +40,7 @@ urlpatterns = [
     path('posts/<uuid:post_id>/delete/', views.delete_post, name='delete_post'),
     
     path('remote-follow/', views.send_remote_follow, name='remote_follow'),
+    
+    path('authors/<uuid:author_id>/friends/', views.friends_list, name='friends_list'),
 
 ]

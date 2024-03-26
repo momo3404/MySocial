@@ -1059,3 +1059,9 @@ def send_remote_follow(request):
             return JsonResponse({'message': 'Failed to send follow request.', 'error': response.text}, status=response.status_code)
 
     return JsonResponse({'message': 'Invalid request method. Only POST is allowed.'}, status=405)
+
+def friends_list(request, author_id):
+    author = get_object_or_404(Author, authorId=author_id)
+
+    friends = author.get_mutual_follows()
+    return render(request, 'base/mysocial/friends_list.html', {'friends': friends})

@@ -29,7 +29,18 @@ class Author(models.Model):
 
         return following and followed_by
 
-
+    def get_mutual_follows(self):
+        # this author is following
+        authors_followed = Follower.objects.filter(follower=self).values_list('author__authorId', flat=True)
+        
+        # following this author
+        authors_following = Follower.objects.filter(author=self).values_list('follower__authorId', flat=True)
+        
+        mutual_follows_ids = set(authors_followed).intersection(set(authors_following))
+        mutual_follows = Author.objects.filter(authorId__in=mutual_follows_ids)
+        
+        return mutual_follows
+    
     def __str__(self):
         return self.displayName
 
