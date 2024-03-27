@@ -4,6 +4,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <style>
+
         .center {
             margin: auto;
             width: 60%;
@@ -34,10 +35,33 @@
             background-color: #0056b3; /* Darker blue on hover */
             color: white;
         }
+        
+        .navbar {
+            border-radius: 0.25rem;
+        }
+    
+        .navbar {
+            background-color: #363b3d;
+            padding: 0.5rem 1rem;
+        }
+    
+        .navbar-brand {
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.75rem;
+        }
+    
+        .nav-link {
+            font-size: 1rem;
+            color: #8D99AE;
+        }
+    
+        .nav-link.active {
+            color: #3F88C5;
+        }
     </style>
 </head>
 
-<nav class="navbar navbar-expand-lg navbar-light" style="background-color: #DBB630;">
+<nav class="navbar navbar-expand-lg navbar-light" style="background-color: #acd0ec;">
     <div class="container-fluid">
       <a class="navbar-brand" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 150%;" href="{% url 'mysocial:login' %}">MySocial</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
@@ -64,12 +88,24 @@
               <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:remote'%}">Connect</a>
             </li>
           </ul>
+        <ul class="navbar-nav">
+            <li class="nav-item">
+            <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:friends_list' author.authorId %}">Friends</a>
+            </li>
+        </ul>
+        {% if viewing_own_profile %}
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:edit_profile' author.authorId %}">Edit Profile</a>
+                </li>
+            </ul>
+        {% endif %}
       </div>
     </div>
 </nav>
 
-<body class="h-100 gradient-form" style="background-color: #01579B;">
-    <div class="text-center" style="color: #faFafa;">
+<body class="h-100 gradient-form" style="background-color: #2d6088;">
+    <div class="text-center" style="color: #F8F7F9; padding-top: 20px;">
     <div class="center">
     <div class="posts-container">
         <div class="card post-card" id="post-{{ post.id }}">
@@ -101,7 +137,7 @@
                 {% endif %}
             <!-- Edit Button -->
             {% if author.authorId == post.author.authorId %}
-            <button style = "margin-left: 10px;" onclick="editPost('{{ post.id }}', '{{ post.title|escapejs }}', '{{ post.content|escapejs }}');" class="btn btn-sm btn-edit">Edit</button>
+                <button style = "margin-left: 10px;" onclick="editPost('{{ post.id }}', '{{ post.title|escapejs }}', '{{ post.content|escapejs }}');" class="btn btn-sm btn-edit">Edit</button>
             {% endif %}
             </h6>
             <div class="card-body post-content" id="post-content-{{ post.id }}">
@@ -114,10 +150,10 @@
                         <button type="submit" class="btn btn-sm btn-edit">Like</button>
                     </form>
                     {% if author.authorId == post.author.authorId %}
-                    <form action="{% url 'mysocial:delete_post' post.postId %}" method="post" class="me-2">
-                        {% csrf_token %}
-                        <button style="background-color: #E53935;" type="submit" class="btn btn-sm btn-edit">Delete</button>
-                    </form>
+                        <form action="{% url 'mysocial:delete_post' post.postId %}" method="post" class="me-2">
+                            {% csrf_token %}
+                            <button style="background-color: #E53935;" type="submit" class="btn btn-sm btn-edit">Delete</button>
+                        </form>
                     {% endif %}
                     <span class="like-count me-2">{{ post.likesCount }} Likes</span>
                 </div>

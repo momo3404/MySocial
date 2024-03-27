@@ -41,6 +41,23 @@ class Author(models.Model):
         
         return mutual_follows
     
+    def get_followers(self):
+        # following this author
+        authors_following = Follower.objects.filter(author=self).values_list('follower__authorId', flat=True)
+
+        followers = Author.objects.filter(authorId__in=authors_following)
+
+        return followers
+    
+    def get_following(self):
+        # this author is following
+        authors_followed = Follower.objects.filter(follower=self).values_list('author__authorId', flat=True)
+
+        following = Author.objects.filter(authorId__in=authors_followed)
+
+        return following
+
+    
     def __str__(self):
         return self.displayName
 

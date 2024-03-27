@@ -420,6 +420,8 @@ def public_profile(request, author_id):
     already_following = False
     follow_requested = False
     viewing_own_profile = False
+    viewing_friend_profile = False
+
     if request.user.is_authenticated:
         try:
             user_author = request.user.author
@@ -427,6 +429,10 @@ def public_profile(request, author_id):
             already_following = Follower.objects.filter(author=author, follower=user_author).exists()
             follow_requested = FollowRequest.objects.filter(actor=user_author, object=author).exists()
             print(already_following)
+
+            if not viewing_own_profile:
+                    viewing_friend_profile = user_author.is_friend(author)
+
         except Author.DoesNotExist:
             pass
 
@@ -436,6 +442,7 @@ def public_profile(request, author_id):
         'already_following': already_following,
         'follow_requested': follow_requested,
         'viewing_own_profile': viewing_own_profile,
+        'viewing_friend_profile': viewing_friend_profile,
     }
     
     return render(request, 'base/mysocial/public_profile.html', context)
@@ -539,23 +546,33 @@ def display_stream(request, authorId):
     template_name = 'base/mysocial/stream_posts.html'
     action = request.GET.get('action', 'all') 
     author = get_object_or_404(Author, authorId=authorId)
-    posts = Post.objects.all().order_by('-published')
+    posts = Post.objects.exclude(visibility='UNLISTED').order_by('-published')
     visible_posts = []
+
+    # if action == 'friends':
+    #     # Get IDs of friends (both following and followers to consider mutual friendships)
+    #     friends_ids = author.get_mutual_follows()
+    #     mutual_follows_ids = [author.authorId for author in friends_ids]
+
+    #     # Include the author's own posts in the stream as well
+    #     visible_posts = posts.filter(author__authorId__in=friends_ids) | posts.filter(author=author)
+        
+    # else:  # Default action 'all', excluding 'UNLISTED' as per the initial queryset
+    #     visible_posts = posts
+
 
     if action == 'all':
 
         # Filter posts based on visibility for the current user
         visible_posts = []
         for post in posts:
-            if post.visibility == 'PUBLIC' or 'UNLISTED':
+            if post.visibility == 'PUBLIC':
                 visible_posts.append(post)
             elif post.visibility == 'PRIVATE':
                 if author.is_friend(post.author) or author == post.author:
                     visible_posts.append(post)
 
-        #visible_posts = [post for post in posts if post.visibility == 'PUBLIC' or (post.visibility == 'PRIVATE' and (author.is_friend(post.author) or author == post.author))]
-
-    elif action == 'following':
+    elif action == 'friends':
 
         # Filter posts based on visibility for the current user
         visible_posts = []
@@ -566,13 +583,6 @@ def display_stream(request, authorId):
 
         visible_posts = [post for post in posts if author.is_friend(post.author) ]
     
-    elif action == 'unlisted':
-
-        visible_posts = []
-        for post in posts:
-            if post.visibility == 'UNLISTED':
-                    visible_posts.append(post)
-
     context = {
         'posts': visible_posts,
         'author': author,
@@ -759,16 +769,6 @@ class PostDetailView(View):
                 return HttpResponse('Post updated', status=200)
             else:
                 return HttpResponse('Forbidden', status=403)
-
-def display_post(request, authorId, post_id):
-    post = get_object_or_404(Post, postId=post_id)
-    author = get_object_or_404(Author, authorId=authorId)
-    comments = Comment.objects.filter(post=post).order_by('-published')
-
-    if post.visibility == 'PUBLIC' or (post.visibility == 'PRIVATE' and author.is_friend(post.author) or author == post.author):
-        context = {'post': post, 'author': author, 'comments': comments}
-    
-    return render(request, 'base/mysocial/post_detail.html', context)
 
 @login_required
 @require_POST
@@ -1064,4 +1064,35 @@ def friends_list(request, author_id):
     author = get_object_or_404(Author, authorId=author_id)
 
     friends = author.get_mutual_follows()
-    return render(request, 'base/mysocial/friends_list.html', {'friends': friends})
+
+    # Followers
+    followers = author.get_followers()
+
+    # Following
+    following = author.get_following()
+
+    context = {
+        'author': author,
+        'friends': friends,
+        'followers': followers,
+        'following': following,
+    }
+
+    return render(request, 'base/mysocial/friends_list.html', context)
+
+@login_required
+def display_post(request, authorId, post_id):
+    post = get_object_or_404(Post, postId=post_id)
+    comments = Comment.objects.filter(post=post).order_by('-published')
+    author = request.user.author
+
+    if post.visibility == 'PRIVATE':
+        if post.author != author:
+            mutual_follows = author.get_mutual_follows()
+
+            if post.author not in mutual_follows:
+                raise Http404("You do not have permission to view this post.")
+            
+    context = {'post': post, 'author': post.author, 'comments': comments}
+    
+    return render(request, 'base/mysocial/post_detail.html', context)
