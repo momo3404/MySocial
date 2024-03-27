@@ -242,7 +242,7 @@ class InboxView(APIView):
                 except IntegrityError:
                     return Response({'detail': 'IntegrityError, post could not be created.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if data.get('type') in ["post", "Follow", "Like", "comment", "share-post"]:
+        if data.get('type') in ["post", "Follow", "Like", "comment", "share-post", "follow"]:
             inbox_item = Inbox(author=author, inbox_item=json.dumps(data))
             inbox_item.save()
             return Response(status=status.HTTP_201_CREATED)
