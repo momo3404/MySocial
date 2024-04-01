@@ -22,10 +22,18 @@
   .nav-link.active {
       color: #3F88C5;
   }
+
+  .inbox-item {
+    margin-left: 20px;
+    border: 1px solid #DBB630; /* Border style */
+    border-radius: 10px; /* Optional: Rounded corners */
+    padding: 5px; /* Padding inside the border */
+    margin-bottom: 10px; /* Spacing between items */
+    }
 </style>
 </head>
 
-<nav class="navbar navbar-expand-lg navbar-light" style="background-color: #acd0ec;">
+<nav class="navbar navbar-expand-lg navbar-light" style="background-color: #DBB630;">
 <div class="container-fluid">
 <a class="navbar-brand" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 150%;" href="{% url 'mysocial:login' %}">MySocial</a>
 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
@@ -68,39 +76,40 @@
 </div>
 </nav>
 
-<body class="h-100 gradient-form" style="background-color: #2d6088;; color: #FAFAFA;"></body>
-    {% for item in inbox_items %}
-        {% if item.type == "Follow" %}
-            <div style="margin-left: 20px;">
-                <p>{{ item.actor.displayName }} wants to follow you.</p>
-                <form  method="post" action="{% url 'mysocial:process_follow_request' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="approve">
-                    <input type="hidden" name="inbox_item_id" value="{{ item.inbox_id }}">
-                    <input type="hidden" name="actor_id" value="{{ item.actor.id }}">
-                    <input type="hidden" name="object_id" value="{{ item.object.id }}">
-                    <button type="submit" class="btn btn-success">Approve</button>
-                </form>
-                <form  method="post" action="{% url 'mysocial:process_follow_request' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="reject">
-                    <input type="hidden" name="inbox_item_id" value="{{ item.inbox_id }}">
-                    <input type="hidden" name="actor_id" value="{{ item.actor.id }}">
-                    <input type="hidden" name="object_id" value="{{ item.object.id }}">
-                    <button type="submit" class="btn btn-danger">Reject</button>
-                </form>
-            </div>
-        {% elif item.type == "post" %}
-        <p style="margin-left: 20px;">{{ item.author.displayName }} made a new post called '{{item.title}}'</p>
-        {% elif item.type == "share-post" %}
-        <p style="margin-left: 20px;">{{ item.author.displayName }} shared a post called '{{item.title}}'</p>
-        {% elif item.type == "Like" %}
-            <p style="margin-left: 20px;">{{ item.summary }}</p>
-        {% elif item.type == "comment" %}
-            <p style="margin-left: 20px;">{{ item.author.displayName }} commented '{{item.comment}}' on your post.</p>
-        {% endif %}
-    {% empty %}
-        <p>Your inbox is empty.</p>
-    {% endfor %}
+<body class="h-100 gradient-form" style="background-color: #2d6088; color: #FAFAFA;">
+  {% for item in inbox_items %}
+      <div class = "inbox-item">
+          {% if item.type == "Follow" %}
+              <p>{{ item.actor.displayName }} wants to follow you.</p>
+              <form  method="post" action="{% url 'mysocial:process_follow_request' %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="approve">
+                  <input type="hidden" name="inbox_item_id" value="{{ item.inbox_id }}">
+                  <input type="hidden" name="actor_id" value="{{ item.actor.id }}">
+                  <input type="hidden" name="object_id" value="{{ item.object.id }}">
+                  <button type="submit" class="btn btn-success">Approve</button>
+              </form>
+              <form  method="post" action="{% url 'mysocial:process_follow_request' %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="reject">
+                  <input type="hidden" name="inbox_item_id" value="{{ item.inbox_id }}">
+                  <input type="hidden" name="actor_id" value="{{ item.actor.id }}">
+                  <input type="hidden" name="object_id" value="{{ item.object.id }}">
+                  <button type="submit" class="btn btn-danger">Reject</button>
+              </form>
+          {% elif item.type == "post" %}
+              <p>{{ item.author.displayName }} made a new post called '{{item.title}}'</p>
+          {% elif item.type == "share-post" %}
+              <p>{{ item.author.displayName }} shared a post called '{{item.title}}'</p>
+          {% elif item.type == "Like" %}
+              <p>{{ item.summary }}</p>
+          {% elif item.type == "comment" %}
+              <p>{{ item.author.displayName }} commented '{{item.comment}}' on your post.</p>
+          {% endif %}
+      </div>
+  {% empty %}
+      <p>Your inbox is empty.</p>
+  {% endfor %}
 </body>
+
 </html>

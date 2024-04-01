@@ -56,11 +56,20 @@
                         <h4 style = "font-family: Georgia, 'Times New Roman', Times, serif" class="mt-1 mb-4 pb-1">Welcome to MySocial</h4>
                       </div>
                       <form class="form-group" method="post" action="{% url 'mysocial:login' %}">
-                        <p style="text-align: center; font-family: Georgia, 'Times New Roman', Times, serif"> Please login to your account </p>
+                        <p style="text-align: center; font-family: Georgia"> Please login to your account </p>
                             {% csrf_token %}
                             {{ form.as_p }}
                         <div class="text-center">
-                            <button class="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3" type="submit">Login</button>
+                          <div class="row">
+                              <div class="col-md-12">
+                                  <button class="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3" type="submit">Login</button>
+                              </div>
+                          </div>
+                          <div class="row">
+                              <div class="col-md-12">
+                                  <a href="{% url 'mysocial:register' %}" class="btn btn-primary btn-block fa-lg gradient-custom-2" role="button">Register</a>
+                              </div>
+                          </div>
                         </div>
                         </form>
       
