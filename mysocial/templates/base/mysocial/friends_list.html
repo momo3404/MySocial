@@ -6,7 +6,7 @@
     <style>
 
         body {
-            background-color: #2d6088;
+            background-color: #01579B;
             color: #F8F7F9;
         }
 
@@ -56,7 +56,7 @@
     </style>
 </head>
 
-<nav class="navbar navbar-expand-lg navbar-light" style="background-color: #acd0ec;">
+<nav class="navbar navbar-expand-lg navbar-light" style="background-color: #DBB630;">
     <div class="container-fluid">
       <a class="navbar-brand" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 150%;" href="{% url 'mysocial:login' %}">MySocial</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
@@ -101,38 +101,48 @@
 
 <body>
     <div class="container">
-        <h1>Mutual Friends</h1>
-        <div class="list-group">
-            {% for friend in friends %}
-                <a href="{% url 'mysocial:public_profile' friend.authorId %}" class="list-group-item list-group-item-action">
-                    {{ friend.displayName }}
-                </a>
-            {% empty %}
-                <div class="alert alert-info">No mutual friends found.</div>
-            {% endfor %}
-        </div>
-
-        <h1>Followers</h1>
-        <div class="list-group">
-            {% for follower in followers %}
-                <a href="{% url 'mysocial:public_profile' follower.authorId %}" class="list-group-item list-group-item-action">
-                    {{ follower.displayName }}
-                </a>
-            {% empty %}
-                <div class="alert alert-info">No followers found.</div>
-            {% endfor %}
-        </div>
-
-            <h1>Following</h1>
-            <div class="list-group">
-                {% for follow in following %}
-                    <a href="{% url 'mysocial:public_profile' follow.authorId %}" class="list-group-item list-group-item-action">
-                        {{ follow.displayName }}
-                    </a>
-                {% empty %}
-                    <div class="alert alert-info">Not following anyone.</div>
-                {% endfor %}
+        <div class="row">
+            <div class="col-md-4">
+                <h1 style = "font-family: Georgia">Mutual Friends</h1>
+                <div class="list-group">
+                    {% for friend in friends %}
+                        <a href="{% url 'mysocial:public_profile' friend.authorId %}" class="list-group-item list-group-item-action">
+                            {{ friend.displayName }}
+                        </a>
+                    {% empty %}
+                        <div class="alert alert-info">No mutual friends found.</div>
+                    {% endfor %}
+                </div>
             </div>
+
+            <div class="col-md-4">
+                <h1 style = "font-family: Georgia">Followers</h1>
+                <div class="list-group">
+                    {% for follower in followers %}
+                        <a href="{% url 'mysocial:public_profile' follower.authorId %}" class="list-group-item list-group-item-action">
+                            {{ follower.displayName }}
+                        </a>
+                    {% empty %}
+                        <div class="alert alert-info">No followers found.</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <h1 style = "font-family: Georgia">Following</h1>
+                <div class="list-group">
+                    {% for follow in following %}
+                        <a href="{% url 'mysocial:public_profile' follow.authorId %}" class="list-group-item list-group-item-action">
+                            {{ follow.displayName }}
+                        </a>
+                    {% empty %}
+                        <div class="alert alert-info">Not following anyone.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
     </div>
 </body>
+
+
 </html>
