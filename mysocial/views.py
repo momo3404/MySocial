@@ -216,6 +216,7 @@ class InboxView(APIView):
         author = self.get_author(authorId)
         print("GOT HERE")
         data = request.data
+        image_post = False
 
         if data.get('type') == 'post':
             post_id = data.get('id')
@@ -223,6 +224,8 @@ class InboxView(APIView):
                 existing_post = Post.objects.filter(postId=post_id).first()
                 if existing_post:
                     return Response({'detail': 'Post already exists.'}, status=status.HTTP_200_OK)
+                if data.get('contentType') in ["image/png;base64", "image/jpeg;base64"]:
+                    image_post = True
                 try:
                     new_post = Post.objects.create(
                         author=author,
@@ -236,6 +239,13 @@ class InboxView(APIView):
                         content=data.get('content'),
                         visibility=data.get('visibility', 'PUBLIC'),
                     )
+                    if image_post:
+                        img_data = base64.b64decode(data.get('content'))
+                        image_content = ContentFile(img_data)
+                        filename = f"{uuid.uuid4()}.png"  # Generate a unique filename
+                        new_post.image.save(filename, image_content)
+                        new_post.save()
+        
                     inbox_item = Inbox(author=author, inbox_item=json.dumps(data))
                     inbox_item.save()
                     return Response({'detail': 'New post created.'}, status=status.HTTP_201_CREATED)
@@ -279,7 +289,7 @@ def process_follow_request(request):
             follower = item.get("actor")
             RemoteFollow.objects.create(
                 author=object, 
-                follower_inbox= follower.get("host") + "authors/" + str(actor_id) + "/inbox/"
+                follower_inbox= follower.get("host") + "mysocial/authors/" + str(actor_id) + "/inbox/"
             )
             inbox_item.delete()
             return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
@@ -613,6 +623,15 @@ class PostListCreateView(View):
             return JsonResponse(serializer.data, status=201) 
         else:
             return JsonResponse(serializer.errors, status=400)
+        
+def encode_image_to_base64(image):
+    image_content = image.read()
+    # Encode image content to base64
+    image_base64 = base64.b64encode(image_content).decode('utf-8')
+    missing_padding = len(image_base64) % 4
+    if missing_padding != 0:
+        image_base64 += '=' * (4 - missing_padding)
+    return image_base64
 
 def create_post(request, authorId):
     template_name = 'base/mysocial/stream_posts.html'
@@ -622,6 +641,7 @@ def create_post(request, authorId):
     content = request.POST.get('content')
     visibility = request.POST.get('visibility')
     image = request.FILES.get('image')
+    content_type = "text/plain"
 #        post_type = request.POST.get('type') 
     author = get_object_or_404(Author, authorId=authorId)
     markup = request.POST.get('markup', '') == 'on'
@@ -642,11 +662,21 @@ def create_post(request, authorId):
         post.description = description
         post.content = content
         post.visibility = visibility
+        post.image = image
         post.save()
     else:
         # Create new post
-        if title and content:
-            new_post = Post.objects.create(title=title, description=description, content=content, author=author, visibility=visibility, image=image)
+        if image:
+            extension = str(image).split(".")[1]
+            if extension == "jpeg":
+                content_type = "image/jpeg;base64"
+                content = encode_image_to_base64(image)
+            else:
+                content_type = "image/png;base64"
+                content = encode_image_to_base64(image)
+
+        if title:
+            new_post = Post.objects.create(title=title, description=description, content_type=content_type, content=content, author=author, visibility=visibility, image=image)
             post_url = reverse('mysocial:post_detail', kwargs={'authorId': authorId, 'post_id': new_post.postId})
             new_post.url = request.build_absolute_uri(post_url)
             new_post.origin = request.build_absolute_uri(post_url)
@@ -659,8 +689,8 @@ def create_post(request, authorId):
                 "source": new_post.source,
                 "origin": new_post.origin,
                 "description": new_post.description or "",
-                "contentType": "text/plain",  
-                "content": new_post.content,
+                "contentType": content_type,  
+                "content": content,
                 "author": {
                     "type": "author",
                     "id": str(author.authorId),
@@ -701,7 +731,7 @@ def create_post(request, authorId):
     # Redirect to the posts list to see changes
     return redirect(reverse('mysocial:posts_by_author', kwargs={'authorId': authorId}))
 
-class PostDetailView(View):
+class PostDetailView(APIView):
     def get(self, request, authorId, post_id):
         post = get_object_or_404(Post, postId=post_id)
         author = get_object_or_404(Author, authorId=authorId)
@@ -733,7 +763,7 @@ class PostDetailView(View):
                 "visibility": post.visibility
             }
 
-            return JsonResponse(post_data)
+            return Response(post_data)
         else:
             return HttpResponse('Forbidden', status=403)
 
@@ -810,17 +840,12 @@ def like_post(request, post_id):
 @login_required
 @require_POST
 def share_post(request, post_id):
-    def get_author(authorId):
-        try:
-            return Author.objects.get(authorId=authorId)
-        except Author.DoesNotExist:
-            print(authorId)
-            raise Http404("Author not found")
-        
+
     post = get_object_or_404(Post, postId=post_id)
-    author = get_author(request.user.author.authorId)
+    author = get_object_or_404(Author, authorId=request.user.author.authorId)
     new_postId = uuid.uuid4()
     post_url = reverse('mysocial:post_detail', kwargs={'authorId': request.user.author.authorId, 'post_id': new_postId})
+    stringpostId = str(post.postId)
 
     new_post = Post.objects.create(
         type=post.type,
@@ -838,12 +863,13 @@ def share_post(request, post_id):
         comments=post.comments,
         published=post.published,
         visibility=post.visibility,
+        image = post.image,
     )
 
     inbox_item = {
         "type": "post",
         "title": post.title,
-        "id": post.url,
+        "id": stringpostId,
         "source": post.source,
         "origin": post.origin,
         "description": post.description or "",
@@ -863,18 +889,20 @@ def share_post(request, post_id):
         "visibility": post.visibility
     }
 
+    remote_followers = RemoteFollow.objects.filter(author=author)
+    for relation in remote_followers:
+        inbox_url = relation.follower_inbox
+        print(inbox_url)
+        response = requests.post(f'{inbox_url}', json=inbox_item)
+            
+            
     followers = Follower.objects.filter(author=author)
     for relation in followers:
-        host_url = relation.follower.host
-        url = f'{host_url}/mysocial/authors/'         # change later to find authors node url
-        author_id = relation.follower.authorId
-        response = requests.post(f'{url}{author_id}/inbox/', json=inbox_item)
-#        Inbox.objects.create(
-#            author=relation.follower,
-#            inbox_item=json.dumps(inbox_item)
-#        )
+        Inbox.objects.create(
+            author=relation.follower,
+            inbox_item=json.dumps(inbox_item)
+        )
     
-
     referer_url = request.META.get('HTTP_REFERER')
     if referer_url:
         return HttpResponseRedirect(referer_url)
@@ -1051,7 +1079,7 @@ def send_remote_follow(request):
         }
         node = Node.objects.get(node_id=node_id)
         
-        response = requests.post(f"{object_id}/inbox/", json=data, auth=HTTPBasicAuth(node.username, node.password))
+        response = requests.post(f"{request.POST.get('object_host')}authors/{object_id}/inbox/", json=data, auth=HTTPBasicAuth(node.username, node.password))
         
         if response.status_code == 201:
             return JsonResponse({'message': 'Follow request sent successfully.'}, status=201)

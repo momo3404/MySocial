@@ -105,7 +105,13 @@
             {% endif %}
             </h6>
             <div class="card-body post-content" id="post-content-{{ post.id }}">
-                <p>{{ post.content }}</p>
+                {% if post.image %}
+                    <!-- Image -->
+                    <img src="{{ post.image.url }}" alt="{{ post.title }}" style="max-width: 100px;">
+                {% else %}
+                    <!-- Text or Commonmark Post -->
+                    <div class="markdown-content">{{ post.content }}</div>
+                {% endif %}
             </div>
             <div class="card-footer post-footer d-flex justify-content-between align-items-center">
                 <div class="post-interactions d-flex align-items-center">
