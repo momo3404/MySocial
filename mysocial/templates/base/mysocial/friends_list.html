@@ -6,7 +6,7 @@
     <style>
 
         body {
-            background-color: #2d6088;
+            background-color: #01579B;
             color: #F8F7F9;
         }
 
@@ -30,20 +30,119 @@
             background-color: white;
             color: #455A64;
         }
+
+        .navbar {
+            border-radius: 0.25rem;
+        }
+    
+        .navbar {
+            background-color: #546E7A;
+            padding: 0.5rem 1rem;
+        }
+    
+        .navbar-brand {
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.75rem;
+        }
+    
+        .nav-link {
+            font-size: 1rem;
+            color: #8D99AE;
+        }
+    
+        .nav-link.active {
+            color: #3F88C5;
+        }
     </style>
 </head>
+
+<nav class="navbar navbar-expand-lg navbar-light" style="background-color: #DBB630;">
+    <div class="container-fluid">
+      <a class="navbar-brand" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 150%;" href="{% url 'mysocial:login' %}">MySocial</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNavDropdown">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:public_profile' request.user.author.authorId %}">Profile</a>
+            </li>
+          </ul>
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:inbox' request.user.author.authorId %}">Inbox</a>
+            </li>
+          </ul>
+        <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:posts_by_author' request.user.author.authorId %}">Stream</a>
+            </li>
+          </ul>
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:remote'%}">Connect</a>
+            </li>
+          </ul>
+        <ul class="navbar-nav">
+            <li class="nav-item">
+            <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:friends_list' author.authorId %}">Friends</a>
+            </li>
+        </ul>
+        {% if viewing_own_profile %}
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                <a class="nav-link active" style ="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 125%;" href="{% url 'mysocial:edit_profile' author.authorId %}">Edit Profile</a>
+                </li>
+            </ul>
+        {% endif %}
+      </div>
+    </div>
+</nav>
+
 <body>
     <div class="container">
-        <h1>Mutual Friends</h1>
-        <div class="list-group">
-            {% for friend in friends %}
-                <a href="{% url 'mysocial:public_profile' friend.authorId %}" class="list-group-item list-group-item-action">
-                    {{ friend.displayName }}
-                </a>
-            {% empty %}
-                <div class="alert alert-info">No mutual friends found.</div>
-            {% endfor %}
+        <div class="row">
+            <div class="col-md-4">
+                <h1 style = "font-family: Georgia">Mutual Friends</h1>
+                <div class="list-group">
+                    {% for friend in friends %}
+                        <a href="{% url 'mysocial:public_profile' friend.authorId %}" class="list-group-item list-group-item-action">
+                            {{ friend.displayName }}
+                        </a>
+                    {% empty %}
+                        <div class="alert alert-info">No mutual friends found.</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <h1 style = "font-family: Georgia">Followers</h1>
+                <div class="list-group">
+                    {% for follower in followers %}
+                        <a href="{% url 'mysocial:public_profile' follower.authorId %}" class="list-group-item list-group-item-action">
+                            {{ follower.displayName }}
+                        </a>
+                    {% empty %}
+                        <div class="alert alert-info">No followers found.</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <h1 style = "font-family: Georgia">Following</h1>
+                <div class="list-group">
+                    {% for follow in following %}
+                        <a href="{% url 'mysocial:public_profile' follow.authorId %}" class="list-group-item list-group-item-action">
+                            {{ follow.displayName }}
+                        </a>
+                    {% empty %}
+                        <div class="alert alert-info">Not following anyone.</div>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
     </div>
 </body>
+
+
 </html>

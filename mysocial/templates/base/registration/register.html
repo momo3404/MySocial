@@ -15,13 +15,13 @@
 </nav>
 
 
-<body class="h-100 gradient-form" style="background-color: #039BE5;">
-    <h2>Register</h2>
-    <form method="post">
+<body class="h-100 gradient-form" style="background-color: #01579B; color: #EEEEEE;">
+    <h2 style="margin-left: 20px; font-family: Georgia;">Register</h2>
+    <form method="post" style="margin-left: 20px; font-family: Georgia;">
         {% csrf_token %}
         {{ form.as_p }}
         <div class="text-left">
-          <button class="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3" type="submit">Register</button>
+          <button style = "background-color: #DBB630; color:#01579B"class="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3" type="submit">Register</button>
         </div>
     </form>
 </body>

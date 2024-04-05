@@ -4,7 +4,7 @@ from . import views
 
 app_name = 'mysocial'
 urlpatterns = [
-    path("", views.index, name="index"),
+    path("", views.CustomLoginView.as_view(), name="login"),
     path('register/', views.register, name="register" ),
     path('login/', views.CustomLoginView.as_view(), name='login'),
     path('remote/', views.remote, name='remote'),
