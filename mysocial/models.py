@@ -15,6 +15,7 @@ def get_current_time():
 class Author(models.Model):
     type = models.CharField(max_length=SHORT, null=True)
     authorId = models.UUIDField(default=uuid.uuid4, unique=True)
+    author_url = models.URLField(max_length=URL, unique=True)
     url = models.URLField(max_length=URL, unique=True, null=False)
     host = models.URLField(max_length=URL, null=True)
     displayName = models.CharField(max_length=SHORT, null=True)

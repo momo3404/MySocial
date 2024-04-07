@@ -3,7 +3,7 @@ from .models import *
 
 class AuthorSerializer(serializers.Serializer):
     type = serializers.CharField(max_length=30)
-    id = serializers.UUIDField(source='authorId',format='hex_verbose', required=False, allow_null=True)  
+    id = serializers.SerializerMethodField('get_id') 
     url = serializers.URLField(max_length=200)  
     host = serializers.URLField(max_length=200)  
     displayName = serializers.CharField(max_length=200)  
@@ -14,6 +14,9 @@ class AuthorSerializer(serializers.Serializer):
     class Meta:
         model = Author
         fields = ['type', 'id', 'url', 'host', 'displayName', 'github', 'profileImage']
+
+    def get_id(self, obj):
+        return obj.url
         
     def create(self, validated_data):
         """
