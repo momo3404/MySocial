@@ -269,7 +269,8 @@ class InboxView(APIView):
 def process_follow_request(request):
     def get_author(authorId, create_remote=False):
         try:
-            return Author.objects.get(authorId=authorId)
+            new_author_id = authorId.split('/')[-1]
+            return Author.objects.get(authorId=new_author_id)
         except Author.DoesNotExist:
             if create_remote:
                 return None
@@ -282,6 +283,7 @@ def process_follow_request(request):
         actor_id = request.POST.get('actor_id')
         actor = get_author(actor_id, create_remote=True)
         object = get_author(request.POST.get('object_id'))
+        print("actor:", actor_id)
         inbox_item = Inbox.objects.filter(inbox_id=inbox_item_id).first()
 
         if actor is None:
@@ -292,9 +294,11 @@ def process_follow_request(request):
                 follower_inbox= follower.get("host") + "authors/" + str(actor_id) + "/inbox/"
             )
             inbox_item.delete()
+
             return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
 
         try:
+            print("show", actor, object)
             follow_request = FollowRequest.objects.filter(actor=actor, object=object).first()
 
             if action == "approve":
@@ -1089,7 +1093,7 @@ def send_remote_follow(request):
         }
         node = Node.objects.get(node_id=node_id)
         
-        response = requests.post(f"{request.POST.get('object_host')}authors/{object_id}/inbox/", json=data, auth=HTTPBasicAuth(node.username, node.password))
+        response = requests.post(f"{object_id}/inbox/", json=data, auth=HTTPBasicAuth(node.username, node.password))
         
         if response.status_code == 201:
             return JsonResponse({'message': 'Follow request sent successfully.'}, status=201)
