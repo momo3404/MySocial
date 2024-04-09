@@ -30,6 +30,7 @@ from .models import *
 from .serializers import AuthorSerializer, FollowerSerializer, FollowRequestSerializer, PostSerializer, CommentSerializer, LikeSerializer
 import commonmark
 from urllib.parse import urlparse
+import re
 
 # Create your views here.
 def index(request):
@@ -264,12 +265,18 @@ class InboxView(APIView):
         Inbox.objects.filter(author=author).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+def extract_uuid_from_url(url):
+    match = re.search(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', url)
+    return match.group(0) if match else None
+
 @login_required
 @csrf_exempt  
 def process_follow_request(request):
     def get_author(authorId, create_remote=False):
+        new_author_id = extract_uuid_from_url(authorId) or authorId
         try:
-            return Author.objects.get(authorId=authorId)
+            # new_author_id = authorId.split('/')[-1]
+            return Author.objects.get(authorId=new_author_id)
         except Author.DoesNotExist:
             if create_remote:
                 return None
@@ -279,9 +286,13 @@ def process_follow_request(request):
         action = request.POST.get('action')
         inbox_item_id = request.POST.get('inbox_item_id')
         author_id  = request.POST.get('object_id')
+
+        author_id = extract_uuid_from_url(author_id) or author_id
+
         actor_id = request.POST.get('actor_id')
         actor = get_author(actor_id, create_remote=True)
         object = get_author(request.POST.get('object_id'))
+        print("actor:", actor_id)
         inbox_item = Inbox.objects.filter(inbox_id=inbox_item_id).first()
 
         if actor is None:
@@ -292,9 +303,11 @@ def process_follow_request(request):
                 follower_inbox= follower.get("host") + "authors/" + str(actor_id) + "/inbox/"
             )
             inbox_item.delete()
+
             return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
 
         try:
+            print("show", actor, object)
             follow_request = FollowRequest.objects.filter(actor=actor, object=object).first()
 
             if action == "approve":
@@ -1089,7 +1102,7 @@ def send_remote_follow(request):
         }
         node = Node.objects.get(node_id=node_id)
         
-        response = requests.post(f"{request.POST.get('object_host')}authors/{object_id}/inbox/", json=data, auth=HTTPBasicAuth(node.username, node.password))
+        response = requests.post(f"{object_id}/inbox/", json=data, auth=HTTPBasicAuth(node.username, node.password))
         
         if response.status_code == 201:
             return JsonResponse({'message': 'Follow request sent successfully.'}, status=201)
