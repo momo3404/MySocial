@@ -155,12 +155,6 @@
                         {% csrf_token %}
                         <button type="submit" class="btn btn-sm btn-edit">Like</button>
                     </form>
-                    {% if author.authorId == post.author.authorId %}
-                        <form action="{% url 'mysocial:delete_post' post.postId %}" method="post" class="me-2">
-                            {% csrf_token %}
-                            <button style="background-color: #E53935;" type="submit" class="btn btn-sm btn-edit">Delete</button>
-                        </form>
-                    {% endif %}
                     <span class="like-count me-2">{{ post.likesCount }} Likes</span>
                 </div>
                 <small class="text-muted">Published: {{ post.published }}</small>

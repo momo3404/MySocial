@@ -269,29 +269,33 @@ def extract_uuid_from_url(url):
     match = re.search(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', url)
     return match.group(0) if match else None
 
+def get_author(authorId, create_remote=False):
+    new_author_id = extract_uuid_from_url(authorId) or authorId
+    try:
+        # new_author_id = authorId.split('/')[-1]
+        return Author.objects.get(authorId=new_author_id)
+    except Author.DoesNotExist:
+        if create_remote:
+            return None
+        raise Http404("Author not found")
+        
 @login_required
 @csrf_exempt  
 def process_follow_request(request):
-    def get_author(authorId, create_remote=False):
-        new_author_id = extract_uuid_from_url(authorId) or authorId
-        try:
-            # new_author_id = authorId.split('/')[-1]
-            return Author.objects.get(authorId=new_author_id)
-        except Author.DoesNotExist:
-            if create_remote:
-                return None
-            raise Http404("Author not found")
     
     if request.method == 'POST':
         action = request.POST.get('action')
         inbox_item_id = request.POST.get('inbox_item_id')
+        
         author_id  = request.POST.get('object_id')
-
         author_id = extract_uuid_from_url(author_id) or author_id
 
         actor_id = request.POST.get('actor_id')
+        actor_id = extract_uuid_from_url(actor_id) or actor_id
+
         actor = get_author(actor_id, create_remote=True)
-        object = get_author(request.POST.get('object_id'))
+        object = get_author(author_id)
+       
         print("actor:", actor_id)
         inbox_item = Inbox.objects.filter(inbox_id=inbox_item_id).first()
 
@@ -1069,27 +1073,27 @@ class LikedView(APIView):
 
         return Response(response_data)
     
-    
 def send_remote_follow(request):
     if request.method == 'POST':
         object_id = request.POST.get('object_id')
+        # object_id = get_author(object_id, create_remote=True)
+
+        if not object_id:
+            return JsonResponse({'message': 'Author not found or invalid ID.'}, status=404)
+
         node_id = request.POST.get('node_id')
+
+        try:
+            author_serializer = AuthorSerializer(request.user.author)
+            node = Node.objects.get(node_id=node_id)
+
+        except Node.DoesNotExist:
+            return JsonResponse({'message': 'Node not found.'}, status=404)
         
-        author_serializer = AuthorSerializer(request.user.author)
         data = {
             "type": "Follow",
             "summary": f"{request.user.username} wants to follow {request.POST.get('object_displayName')}",
-            "actor": author_serializer.data
-            #{
-                #"type": "author",
-                #"id": int(request.user.author.authorId),
-                #"host": request.user.author.host,
-                #"displayName": request.user.author.displayName,
-                #"url": request.user.author.url,
-                #"github": request.user.author.github,
-                #"profileImage": request.user.author.profileImage,
-            #}
-            ,
+            "actor": author_serializer.data,
             "object": {
                 "type": "author",
                 "id": object_id,
@@ -1100,8 +1104,7 @@ def send_remote_follow(request):
                 "profileImage": request.POST.get('object_profileImage'),
             }
         }
-        node = Node.objects.get(node_id=node_id)
-        
+
         response = requests.post(f"{object_id}/inbox/", json=data, auth=HTTPBasicAuth(node.username, node.password))
         
         if response.status_code == 201:
