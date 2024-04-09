@@ -120,9 +120,10 @@ def unfollow(request, author_id):
     return redirect('mysocial:public_profile', author_id=author_id)
 
 def inbox(request, author_id):
-    author = get_object_or_404(Author, authorId=author_id)
+    newauthor_id = extract_uuid_from_url(author_id) or author_id
+    author = get_object_or_404(Author, authorId=newauthor_id)
 
-    if request.user.author.authorId != author_id and not request.user.is_superuser:
+    if request.user.author.authorId != newauthor_id and not request.user.is_superuser:
         return render(request, 'error_page.html', {'message': 'You do not have permission to view this inbox.'})
 
     inbox_items = Inbox.objects.filter(author=author).order_by('-timestamp')
@@ -194,7 +195,8 @@ class CommentsView(View):
 class InboxView(APIView):
     def get_author(self, authorId):
         try:
-            return Author.objects.get(authorId=authorId)
+            new_author_id = authorId.split('/')[-1]
+            return Author.objects.get(authorId=new_author_id)
         except Author.DoesNotExist:
             raise Http404("Author not found")
 
@@ -214,7 +216,8 @@ class InboxView(APIView):
         })
 
     def post(self, request, authorId, format=None):
-        author = self.get_author(authorId)
+        author = self.get_author(authorId.split('/')[-1])
+        #author = self.get_author(authorId)
         print("GOT HERE")
         data = request.data
         image_post = False
