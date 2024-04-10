@@ -79,13 +79,13 @@ def remote(request):
                     print(author)
                     Author.objects.create(
                         type="author",
-                        id= str(author["id"]),
-                        authorurl= author["url"],
+                        authorId= str(author["id"]),
+                        author_url= author["url"],
+                        url= author["url"],
                         host= author["host"],
                         displayName= author["displayName"],
-                        url= author["url"],
                         github= author["github"],
-                        profileImage= author["profileImage"].url if author["profileImage"] else None
+                        profileImage= author["profileImage"] if author["profileImage"] else None
                     )
 
             else:
