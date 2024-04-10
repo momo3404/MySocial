@@ -299,23 +299,68 @@ def process_follow_request(request):
         # print("actor:", actor_id)
         inbox_item = Inbox.objects.filter(inbox_id=inbox_item_id).first()
 
-        if actor is None:
-            item = json.loads(inbox_item.inbox_item)
-            follower = item.get("actor")
-            RemoteFollow.objects.create(
-                author=object, 
-                follower_inbox= follower.get("host") + "authors/" + str(actor_id) + "/inbox"
-            )                
-
+        if actor:
             follow_request = FollowRequest.objects.filter(actor=actor, object=object).first()
-            
-            if action == "approve":
-                Follower.objects.create(author=follow_request.object, follower=follow_request.actor)
 
-            inbox_item.delete()
-            follow_request.delete()
-            
+            if follow_request and action == "approve":
+                Follower.objects.create(author=follow_request.object, follower=follow_request.actor)
+                follow_request.delete()
+
+            if inbox_item:
+                inbox_item.delete()
+
             return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
+        
+        else:
+    # Log the occurrence of an actor not being found.
+
+    # Here, you might want to handle remote actors differently. 
+    # For example, you could create or update a RemoteFollow entry if you have such a model.
+    # This example assumes you have a way to identify or store remote actors.
+
+    # Check if the inbox_item exists and has the necessary information for a remote follow.
+            if inbox_item:
+                item = json.loads(inbox_item.inbox_item)
+                follower_info = item.get("actor", {})
+
+                # Create or update a RemoteFollow entry
+                remote_follow, created = RemoteFollow.objects.get_or_create(
+                    author=object,
+                    defaults={'follower_inbox': follower_info.get("host") + "authors/" + str(actor_id) + "/inbox/"}
+                )
+
+                if not created:
+                    # If the RemoteFollow entry already existed and you wish to update some fields
+                    remote_follow.follower_inbox = follower_info.get("host") + "authors/" + str(actor_id) + "/inbox/"
+                    remote_follow.save()
+
+                inbox_item.delete()
+
+                # Redirect after handling the remote follow
+                return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
+
+    # Optionally, you could also redirect to an error page or show a message indicating the actor was not found.
+
+
+        # if actor is None:
+        #     item = json.loads(inbox_item.inbox_item)
+        #     follower = item.get("actor")
+        #     RemoteFollow.objects.create(
+        #         author=object, 
+        #         follower_inbox= follower.get("host") + "authors/" + str(actor_id) + "/inbox"
+        #     )                
+
+        #     follow_request = FollowRequest.objects.filter(actor=actor, object=object).first()
+            
+        #     if action == "approve":
+        #         Follower.objects.create(author=follow_request.object, follower=follow_request.actor)
+
+        #     inbox_item.delete()
+        #     follow_request.delete()
+            
+        #     return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
+
+
 
         # try:
         #     # print("show", actor, object)
