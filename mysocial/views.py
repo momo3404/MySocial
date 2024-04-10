@@ -269,26 +269,26 @@ def extract_uuid_from_url(url):
     match = re.search(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', url)
     return match.group(0) if match else None
 
-def fetch_remote_author_data(author_id_url):
-    try:
-        response = requests.get(author_id_url)
-        response.raise_for_status()
-        return response.json()
-    except requests.RequestException:
-        return None
+# def fetch_remote_author_data(author_id_url):
+#     try:
+#         response = requests.get(author_id_url)
+#         response.raise_for_status()
+#         return response.json()
+#     except requests.RequestException:
+#         return None
 
-def create_author_from_remote_data(remote_author_data):
-    new_author = Author(
-        authorId=remote_author_data.get('id'),
-        displayName=remote_author_data.get('displayName'),
-        host=remote_author_data.get('host'),
-        url=remote_author_data.get('url'),
-        github=remote_author_data.get('github'),
-        bio=remote_author_data.get('bio'),
-        profileImage=remote_author_data.get('profileImage'),
-    )
-    new_author.save()
-    return new_author
+# def create_author_from_remote_data(remote_author_data):
+#     new_author = Author(
+#         authorId=remote_author_data.get('id'),
+#         displayName=remote_author_data.get('displayName'),
+#         host=remote_author_data.get('host'),
+#         url=remote_author_data.get('url'),
+#         github=remote_author_data.get('github'),
+#         bio=remote_author_data.get('bio'),
+#         profileImage=remote_author_data.get('profileImage'),
+#     )
+#     new_author.save()
+#     return new_author
 
 def get_author(authorId, create_remote=False):
     new_author_id = extract_uuid_from_url(authorId) or authorId
@@ -297,14 +297,19 @@ def get_author(authorId, create_remote=False):
         return Author.objects.get(authorId=new_author_id)
     except Author.DoesNotExist:
         if create_remote:
-            remote_author_data = fetch_remote_author_data(authorId)
+           return None
+            # new_author = Author(authorId=new_author_id)
+            # new_author.save()
+            # return new_author
+        
+            # remote_author_data = fetch_remote_author_data(authorId)
         else:
             raise Http404("Author not found")
 
-        if remote_author_data is None:
-            raise Http404("Remote author not found or could not be fetched")
+        # if remote_author_data is None:
+        #     raise Http404("Remote author not found or could not be fetched")
 
-        return create_author_from_remote_data(remote_author_data)
+        # return create_author_from_remote_data(remote_author_data)
         
 @login_required
 @csrf_exempt  
