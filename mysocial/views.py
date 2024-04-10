@@ -303,7 +303,8 @@ def process_follow_request(request):
             follow_request = FollowRequest.objects.filter(actor=actor, object=object).first()
 
             if follow_request and action == "approve":
-                Follower.objects.create(author=follow_request.object, follower=follow_request.actor)
+                Follower.objects.create(author=follow_request.object.displayName, follower=follow_request.actor.displayName)
+
                 follow_request.delete()
 
             if inbox_item:
