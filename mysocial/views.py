@@ -358,7 +358,7 @@ def process_follow_request(request):
         # print("actor:", actor_id)
         inbox_item = Inbox.objects.filter(inbox_id=inbox_item_id).first()
 
-        if actor is None:
+        if actor:
             item = json.loads(inbox_item.inbox_item)
             follower = item.get("actor")
             RemoteFollow.objects.create(
@@ -369,21 +369,16 @@ def process_follow_request(request):
 
             return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
 
-        try:
-            # print("show", actor, object)
-            follow_request = FollowRequest.objects.filter(actor=actor, object=object).first()
+        follow_request = FollowRequest.objects.filter(actor=actor, object=object).first()
 
+        if follow_request:
             if action == "approve":
                 Follower.objects.create(author=follow_request.object, follower=follow_request.actor)
-                
             inbox_item.delete()
             follow_request.delete()
-
-            return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
-
-        except FollowRequest.DoesNotExist:
-            return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
-
+        else:
+            print("FollowRequest not found.")
+    
     return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
 
 class CustomLoginView(LoginView):
