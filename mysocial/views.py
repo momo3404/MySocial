@@ -269,6 +269,36 @@ def extract_uuid_from_url(url):
     match = re.search(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', url)
     return match.group(0) if match else None
 
+def get_author_details_from_remote(authorId):
+    url = authorId
+
+    try:
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            data = response.json()
+
+            return {
+                'type': data.get('type'),
+                'authorId': data.get('authorId', authorId),
+                'author_url': data.get('authorUrl'),
+                'url': data.get('url'),
+                'host': data.get('host'),
+                'displayName': data.get('displayName'),
+                'github': data.get('github'),
+                'bio': data.get('bio'),
+                'user': data.get('user'),
+            }
+        
+        else:
+            print(f"Failed to fetch author details for {authorId}. HTTP Status Code: {response.status_code}")
+            return None
+        
+    except requests.exceptions.RequestException as e:
+      
+        print(f"An error occurred while fetching author details for {authorId}: {e}")
+        return None
+    
 def get_author(authorId, create_remote=False):
     new_author_id = extract_uuid_from_url(authorId) or authorId
     try:
@@ -276,8 +306,25 @@ def get_author(authorId, create_remote=False):
         return Author.objects.get(authorId=new_author_id)
     except Author.DoesNotExist:
         if create_remote:
-            return None
-        raise Http404("Author not found")
+            author_details = get_author_details_from_remote(authorId)
+            if author_details:
+                new_author = Author(
+                    type = author_details['type'],
+                    authorId=author_details['authorId'],
+                    author_url=author_details.get('author_url'),
+                    url=author_details.get('url'),
+                    host=author_details.get('host'),
+                    displayName=author_details.get('displayName'),
+                    github=author_details.get('github'),
+                    bio=author_details.get('bio'), 
+                    user=author_details.get('user')
+                )
+                new_author.save()
+                return new_author
+            else:
+                raise Http404("Author not found and cannot be created remotely")
+        else:
+            raise Http404("Author not found")
         
 @login_required
 @csrf_exempt  
@@ -288,13 +335,15 @@ def process_follow_request(request):
         inbox_item_id = request.POST.get('inbox_item_id')
         
         author_id  = request.POST.get('object_id')
+        object = get_author(author_id)
+
         author_id = extract_uuid_from_url(author_id) or author_id
 
         actor_id = request.POST.get('actor_id')
+        actor = get_author(actor_id, create_remote=True)
+
         actor_id = extract_uuid_from_url(actor_id) or actor_id
 
-        actor = get_author(actor_id, create_remote=True)
-        object = get_author(author_id)
        
         # print("actor:", actor_id)
         inbox_item = Inbox.objects.filter(inbox_id=inbox_item_id).first()
