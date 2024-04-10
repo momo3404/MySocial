@@ -287,7 +287,7 @@ def get_author_details_from_remote(authorId):
                 'displayName': data.get('displayName'),
                 'github': data.get('github'),
                 'bio': data.get('bio'),
-                'user': data.get('user'),
+                #'user': data.get('user'),
             }
         
         else:
