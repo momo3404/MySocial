@@ -308,6 +308,15 @@ def get_author(authorId, create_remote=False):
         if create_remote:
             author_details = get_author_details_from_remote(authorId)
             if author_details:
+
+                # Assuming author_details['user'] contains the ID of the User
+                user_id = author_details.get('user')
+
+                try:
+                    user_instance = User.objects.get(id=user_id)
+                except User.DoesNotExist:
+                    raise Http404(f"User with id {user_id} not found")
+
                 new_author = Author(
                     type = author_details['type'],
                     authorId=author_details['authorId'],
@@ -317,7 +326,7 @@ def get_author(authorId, create_remote=False):
                     displayName=author_details.get('displayName'),
                     github=author_details.get('github'),
                     bio=author_details.get('bio'), 
-                    user=author_details.get('user')
+                    user=user_instance
                 )
                 new_author.save()
                 return new_author
