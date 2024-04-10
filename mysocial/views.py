@@ -86,7 +86,7 @@ def remote(request):
                             host= author["host"],
                             displayName= author["displayName"],
                             github= author["github"],
-                            profileImage= author["profileImage"] if author["profileImage"] else None
+                        # profileImage= author["profileImage"] if author["profileImage"] else None
                         )
 
             else:
