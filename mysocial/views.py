@@ -299,7 +299,7 @@ def process_follow_request(request):
         # print("actor:", actor_id)
         inbox_item = Inbox.objects.filter(inbox_id=inbox_item_id).first()
 
-        if actor:
+        if actor is None:
             item = json.loads(inbox_item.inbox_item)
             follower = item.get("actor")
             RemoteFollow.objects.create(
