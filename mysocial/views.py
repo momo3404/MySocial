@@ -296,7 +296,7 @@ def process_follow_request(request):
         actor = get_author(actor_id, create_remote=True)
         object = get_author(author_id)
        
-        print("actor:", actor_id)
+        # print("actor:", actor_id)
         inbox_item = Inbox.objects.filter(inbox_id=inbox_item_id).first()
 
         if actor is None:
@@ -311,11 +311,11 @@ def process_follow_request(request):
             return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
 
         try:
-            print("show", actor, object)
+            # print("show", actor, object)
             follow_request = FollowRequest.objects.filter(actor=actor, object=object).first()
 
             if action == "approve":
-                Follower.objects.create(author=follow_request.object, follower=follow_request.actor)
+                Follower.objects.create(author=object, follower=actor)
                 
             inbox_item.delete()
             follow_request.delete()
