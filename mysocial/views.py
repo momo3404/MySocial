@@ -77,7 +77,7 @@ def remote(request):
                 for author in node_status['authors']:
                     Author.objects.create(
                         type="author",
-                        id= str(author.authorId),
+                        id= str(author["authorId"],
                         authorurl= author.author_url,
                         host= author.host,
                         displayName= author.displayName,
