@@ -311,7 +311,8 @@ def get_author(authorId, create_remote=False):
 
                 # Assuming author_details['user'] contains the ID of the User
                 user_id = author_details.get('user')
-
+                author_id_uuid = extract_uuid_from_url(author_details['authorId'])
+                
                 try:
                     user_instance = User.objects.get(id=user_id)
                 except User.DoesNotExist:
@@ -319,7 +320,7 @@ def get_author(authorId, create_remote=False):
 
                 new_author = Author(
                     type = author_details['type'],
-                    authorId=author_details['authorId'],
+                    authorId=author_id_uuid,
                     author_url=author_details.get('author_url'),
                     url=author_details.get('url'),
                     host=author_details.get('host'),
