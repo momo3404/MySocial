@@ -336,7 +336,7 @@ def process_follow_request(request):
             follower = item.get("actor")
             RemoteFollow.objects.create(
                 author=object, 
-                follower_inbox= follower.get("host") + "authors/" + str(actor_id) + "/inbox/"
+                follower_inbox= follower.get("host") + "authors/" + str(actor_id) + "/inbox"
             )
 
             # Follower.objects.create(author=object, follower=actor)
@@ -354,7 +354,7 @@ def process_follow_request(request):
             inbox_item.delete()
             follow_request.delete()
 
-            print(author_id)
+            # print(author_id)
             return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
 
         except FollowRequest.DoesNotExist:
