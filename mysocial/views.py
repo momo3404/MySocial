@@ -77,17 +77,17 @@ def remote(request):
                 for author in node_status['authors']:
                     print("test", author["id"], str(extract_uuid_from_url(author["id"])))
                     existing_author = Author.objects.filter(authorId= str(extract_uuid_from_url(author["id"]))).first()
-                    if not existing_author:
-                        Author.objects.create(
-                            type="author",
-                            authorId= str(extract_uuid_from_url(author["id"])),
-                            author_url= author["url"],
-                            url= author["url"],
-                            host= author["host"],
-                            displayName= author["displayName"],
-                            github= author["github"],
+                    #if not existing_author:
+                        # Author.objects.create(
+                        #     type="author",
+                        #     authorId= str(extract_uuid_from_url(author["id"])),
+                        #     author_url= author["url"],
+                        #     url= author["url"],
+                        #     host= author["host"],
+                        #     displayName= author["displayName"],
+                        #     github= author["github"],
                         # profileImage= author["profileImage"] if author["profileImage"] else None
-                        )
+                        #)
 
             else:
                 node_status['status'] += " Could not retrieve authors. Please inform your server admin."
