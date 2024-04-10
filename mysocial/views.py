@@ -305,25 +305,32 @@ def process_follow_request(request):
             RemoteFollow.objects.create(
                 author=object, 
                 follower_inbox= follower.get("host") + "authors/" + str(actor_id) + "/inbox"
-            )
-            inbox_item.delete()
+            )                
 
-            return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
-
-        try:
-            # print("show", actor, object)
             follow_request = FollowRequest.objects.filter(actor=actor, object=object).first()
-
+            
             if action == "approve":
                 Follower.objects.create(author=follow_request.object, follower=follow_request.actor)
-                
+
             inbox_item.delete()
             follow_request.delete()
-
+            
             return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
 
-        except FollowRequest.DoesNotExist:
-            return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
+        # try:
+        #     # print("show", actor, object)
+        #     follow_request = FollowRequest.objects.filter(actor=actor, object=object).first()
+
+        #     if action == "approve":
+        #         Follower.objects.create(author=follow_request.object, follower=follow_request.actor)
+                
+        #     inbox_item.delete()
+        #     follow_request.delete()
+
+        #     return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
+
+        # except FollowRequest.DoesNotExist:
+        #     return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
 
     return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
 
