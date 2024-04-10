@@ -75,7 +75,7 @@ def remote(request):
                 node_status['authors'] = authors_data.get('items', [])
 
                 for author in node_status['authors']:
-
+                    print("test", author["id"], str(extract_uuid_from_url(author["id"])))
                     existing_author = Author.objects.filter(authorId= str(extract_uuid_from_url(author["id"]))).first()
                     if not existing_author:
                         Author.objects.create(
@@ -83,10 +83,10 @@ def remote(request):
                             authorId= str(extract_uuid_from_url(author["id"])),
                             author_url= author["url"],
                             url= author["url"],
-                            host= author["host"],
-                            displayName= author["displayName"],
-                            github= author["github"],
-                            profileImage= author["profileImage"] if author["profileImage"] else None
+                            #host= author["host"],
+                            #displayName= author["displayName"],
+                           # github= author["github"],
+                           # profileImage= author["profileImage"] if author["profileImage"] else None
                         )
 
             else:
