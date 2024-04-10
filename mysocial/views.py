@@ -296,10 +296,10 @@ def process_follow_request(request):
         actor = get_author(actor_id, create_remote=True)
         object = get_author(author_id)
        
-        print("actor:", actor_id)
+        # print("actor:", actor_id)
         inbox_item = Inbox.objects.filter(inbox_id=inbox_item_id).first()
 
-        if actor is None:
+        if actor:
             item = json.loads(inbox_item.inbox_item)
             follower = item.get("actor")
             RemoteFollow.objects.create(
@@ -311,7 +311,7 @@ def process_follow_request(request):
             return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
 
         try:
-            print("show", actor, object)
+            # print("show", actor, object)
             follow_request = FollowRequest.objects.filter(actor=actor, object=object).first()
 
             if action == "approve":
