@@ -83,10 +83,10 @@ def remote(request):
                             authorId= str(extract_uuid_from_url(author["id"])),
                             author_url= author["url"],
                             url= author["url"],
-                            #host= author["host"],
-                            #displayName= author["displayName"],
-                           # github= author["github"],
-                           # profileImage= author["profileImage"] if author["profileImage"] else None
+                            host= author["host"],
+                            displayName= author["displayName"],
+                            github= author["github"],
+                            profileImage= author["profileImage"] if author["profileImage"] else None
                         )
 
             else:

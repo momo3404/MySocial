@@ -20,7 +20,7 @@ class Author(models.Model):
     host = models.URLField(max_length=URL, null=True)
     displayName = models.CharField(max_length=SHORT, null=True)
     github = models.URLField(max_length=URL, blank=True, null=True)
-    profileImage = models.ImageField(upload_to='static/images/profile_images/', null=True, blank=True)
+    profileImage = models.ImageField(upload_to='static/images/profile_images/', null=True, blank=True, max_length=1000)
     bio = models.TextField(null=True, blank=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='author', null=True, blank=False) 
     
