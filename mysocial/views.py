@@ -312,7 +312,7 @@ def get_author(authorId, create_remote=False):
                 # Assuming author_details['user'] contains the ID of the User
                 user_id = author_details.get('user')
                 author_id_uuid = extract_uuid_from_url(author_details['authorId'])
-                
+
                 try:
                     user_instance = User.objects.get(id=user_id)
                 except User.DoesNotExist:
@@ -325,8 +325,8 @@ def get_author(authorId, create_remote=False):
                     url=author_details.get('url'),
                     host=author_details.get('host'),
                     displayName=author_details.get('displayName'),
-                    github=author_details.get('github'),
-                    bio=author_details.get('bio'), 
+                    github=author_details.get('github', ''),
+                    bio=author_details.get('bio', ''), 
                     user=user_instance
                 )
                 new_author.save()
