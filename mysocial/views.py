@@ -774,7 +774,7 @@ def create_post(request, authorId):
                 "content": content,
                 "author": {
                     "type": "author",
-                    "id": author.authorId,
+                    "id": str(author.authorId),
                     "authorurl": author.author_url,
                     "host": request.get_host(),
                     "displayName": author.displayName,
