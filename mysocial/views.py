@@ -339,7 +339,7 @@ def process_follow_request(request):
                 follower_inbox= follower.get("host") + "authors/" + str(actor_id) + "/inbox/"
             )
 
-            Follower.objects.create(author=object, follower=actor)
+            # Follower.objects.create(author=object, follower=actor)
             inbox_item.delete()
 
             return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
