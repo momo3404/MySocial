@@ -354,7 +354,7 @@ def process_follow_request(request):
             inbox_item.delete()
             follow_request.delete()
 
-            print("test:", author_id)
+            print(author_id)
             return HttpResponseRedirect(reverse('mysocial:inbox', args=[author_id]))
 
         except FollowRequest.DoesNotExist:
