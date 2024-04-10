@@ -75,15 +75,17 @@ def remote(request):
                 node_status['authors'] = authors_data.get('items', [])
 
                 for author in node_status['authors']:
+
+                    print(author)
                     Author.objects.create(
                         type="author",
-                        id= str(author["authorId"]),
-                        authorurl= author.author_url,
-                        host= author.host,
-                        displayName= author.displayName,
-                        url= author.url,
-                        github= author.github,
-                        profileImage= author.profileImage.url if author.profileImage else None
+                        id= str(author["id"]),
+                        authorurl= author["url"],
+                        host= author["host"],
+                        displayName= author["displayName"],
+                        url= author["url"],
+                        github= author["github"],
+                        profileImage= author["profileImage"].url if author["profileImage"] else None
                     )
 
             else:
