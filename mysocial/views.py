@@ -73,22 +73,6 @@ def remote(request):
             if authors_response.status_code == 200:
                 authors_data = authors_response.json()
                 node_status['authors'] = authors_data.get('items', [])
-
-                for author in node_status['authors']:
-                    print("test", author["id"], str(extract_uuid_from_url(author["id"])))
-                    existing_author = Author.objects.filter(authorId= str(extract_uuid_from_url(author["id"]))).first()
-                    #if not existing_author:
-                        # Author.objects.create(
-                        #     type="author",
-                        #     authorId= str(extract_uuid_from_url(author["id"])),
-                        #     author_url= author["url"],
-                        #     url= author["url"],
-                        #     host= author["host"],
-                        #     displayName= author["displayName"],
-                        #     github= author["github"],
-                        # profileImage= author["profileImage"] if author["profileImage"] else None
-                        #)
-
             else:
                 node_status['status'] += " Could not retrieve authors. Please inform your server admin."
 
@@ -244,12 +228,8 @@ class InboxView(APIView):
                 if data.get('contentType') in ["image/png;base64", "image/jpeg;base64"]:
                     image_post = True
                 try:
-
-                    remote_author = data.get('author')
-                    auth = get_author(remote_author.authorId)
-
                     new_post = Post.objects.create(
-                        author=auth,
+                        author=author,
                         type=data.get('type', 'post'),
                         title=data.get('title'),
                         url=data.get('url'),
