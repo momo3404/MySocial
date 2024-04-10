@@ -76,11 +76,11 @@ def remote(request):
 
                 for author in node_status['authors']:
 
-                    existing_author = Author.objects.filter(authorId= str(author["id"])).first()
+                    existing_author = Author.objects.filter(authorId= str(extract_uuid_from_url(author["id"]))).first()
                     if not existing_author:
                         Author.objects.create(
                             type="author",
-                            authorId= str(author["id"]),
+                            authorId= str(extract_uuid_from_url(author["id"])),
                             author_url= author["url"],
                             url= author["url"],
                             host= author["host"],
