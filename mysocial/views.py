@@ -732,6 +732,7 @@ def create_post(request, authorId):
                 "visibility": new_post.visibility
             }
             
+            print(author.author_url)
             remote_followers = RemoteFollow.objects.filter(author=author)
             for relation in remote_followers:
                 inbox_url = relation.follower_inbox
