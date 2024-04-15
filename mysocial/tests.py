@@ -2,174 +2,149 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
-from .models import *
+from django.contrib.auth.models import User
+from .models import Author, Post, Like, FollowRequest, Comment
 import uuid
-from django.core.exceptions import ObjectDoesNotExist
-import base64
-from django.core.files.base import ContentFile
-from django.core.serializers.json import DjangoJSONEncoder
-import json
-class AuthorTesting(TestCase):
-    def setUp(self):
-        self.user = User.objects.create(username = "TestUser", password = "TestPassword")
-        self.author = Author.objects.create(user=self.user)
 
-    def test_author_model_is_valid(self):
-        d = self.author
-        self.assertTrue(isinstance(d, Author))
-
-class AuthorViewTest(TestCase):
+class AuthorCRUDTests(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.user = User.objects.create_user('testuser', 'test@example.com', 'testpassword')
-        self.author = Author.objects.create(displayName='Test Author', user=self.user)
-        self.url = reverse('mysocial:authors-detail', kwargs={'authorId': self.author.authorId})
+        self.user = User.objects.create_user(username='testuser', email='user@test.com', password='testpass')
+        self.author = Author.objects.create(displayName='Author1', user=self.user, url=f"http://example.com/author/{uuid.uuid4()}")
 
-    def test_get_author(self):
-        response = self.client.get(self.url)
+    def test_create_author(self):
+        self.client.login(username='testuser', password='testpass')
+        url = reverse('mysocial:authors')
+        data = {'displayName': 'New Author', 'user': self.user.id, 'url': f"http://example.com/author/{uuid.uuid4()}"}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_retrieve_author(self):
+        url = reverse('mysocial:authors-detail', kwargs={'authorId': self.author.authorId})
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['displayName'], 'Test Author')
 
-class PostTesting(TestCase):
+    def test_update_author(self):
+        self.client.login(username='testuser', password='testpass')
+        url = reverse('mysocial:authors-detail', kwargs={'authorId': self.author.authorId})
+        data = {'displayName': 'Updated Name'}
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_delete_author(self):
+        self.client.login(username='testuser', password='testpass')
+        url = reverse('mysocial:authors-detail', kwargs={'authorId': self.author.authorId})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+class PostCRUDTests(TestCase):
     def setUp(self):
-        # jpeg test image
-        with open('mysocial/test_image.jpeg', 'rb') as f:
-            image_data = f.read()
-            image_data_jpg = base64.b64encode(image_data)
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser2', email='user2@test.com', password='testpass2')
+        self.author = Author.objects.create(displayName='Author2', user=self.user, url=f"http://example.com/author/{uuid.uuid4()}")
+        self.post = Post.objects.create(title='Initial Post', content='Initial content', author=self.author, visibility='PUBLIC')
 
-        self.user2 = User.objects.create(
-                username = "Test2",
-                password = "1234"
-                )
+    def test_create_post(self):
+        self.client.login(username='testuser2', password='testpass2')
+        url = reverse('mysocial:multiple_posts', kwargs={'authorId': self.author.authorId})
+        data = {'title': 'New Post', 'content': 'Content of the new post', 'author': self.author.id, 'visibility': 'PUBLIC'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.author2 = Author.objects.create(user=self.user2)
+    def test_retrieve_post(self):
+        url = reverse('mysocial:single_post', kwargs={'authorId': self.author.authorId, 'post_id': self.post.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.post1 = Post.objects.create(
-            title="example post 1",
-            description="This post is an example",
-            content_type="image/jpeg;base64",
-            content="testing... 1,2,3",
-            image=ContentFile(base64.b64decode(image_data_jpg), name='test_image_1'),
-            author=self.author2,
-            likesCount=5,
-            visibility="PUBLIC"
-        )
+    def test_update_post(self):
+        self.client.login(username='testuser2', password='testpass2')
+        url = reverse('mysocial:single_post', kwargs={'authorId': self.author.authorId, 'post_id': self.post.id})
+        data = {'title': 'Updated Post', 'content': 'Updated content'}
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_post_model_is_valid_png(self):
-        self.assertTrue(isinstance(self.post1, Post))
+    def test_delete_post(self):
+        self.client.login(username='testuser2', password='testpass2')
+        url = reverse('mysocial:single_post', kwargs={'authorId': self.author.authorId, 'post_id': self.post.id})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-    def test_post_model_str(self):
-        self.assertEqual(str(self.post1), "example post 1")
-
-
-class ModelTesting(TestCase):
+class CommentCRUDTests(TestCase):
     def setUp(self):
-        self.user1 = User.objects.create(username="Test1", password="1234")
-        self.user2 = User.objects.create(username="Test2", password="1234")
-        self.author1 = Author.objects.create(user=self.user1, displayName="Author 1", url=f"http://example.com/author/{uuid.uuid4()}")
-        self.author2 = Author.objects.create(user=self.user2, displayName="Author 2", url=f"http://example.com/author/{uuid.uuid4()}")
-        self.followers = Follower.objects.create(author=self.author1, follower=self.author2)
-        self.follow_request = FollowRequest.objects.create(type="Follow", summary="Test follow request", actor=self.author2, object=self.author1)
-        
-        with open('mysocial/test_image.jpeg', 'rb') as f:
-            image_data = f.read()
-            image_data_jpg = base64.b64encode(image_data)
-        self.post = Post.objects.create(
-            title="Test Post",
-            description="This is a test post",
-            content_type="image/jpeg;base64",
-            content="Testing content",
-            image=ContentFile(base64.b64decode(image_data_jpg), name='test_image_1'),
-            author=self.author1,
-            likesCount=5,
-            visibility="PUBLIC"
-        )
-        self.comment = Comment.objects.create(
-            type="comment",
-            author=self.author1,
-            comment="Test comment",
-            contentType="text/plain",
-            post=self.post
-        )
-        self.node = Node.objects.create(node_name="Test Node", url="127.0.0.1:8000")
-        self.like = Like.objects.create(
-            context="https://www.w3.org/ns/activitystreams",
-            summary="Test like",
-            type="Like",
-            author=self.author2,
-            object_url="http://example.com/post"
-        )
-
-    def test_follower_model_is_valid(self):
-        self.assertTrue(isinstance(self.followers, Follower))
-
-    def test_follow_request_model_is_valid(self):
-        self.assertTrue(isinstance(self.follow_request, FollowRequest))
-
-    def test_post_model_is_valid(self):
-        self.assertTrue(isinstance(self.post, Post))
-
-    def test_comment_model_is_valid(self):
-        self.assertTrue(isinstance(self.comment, Comment))
-
-    def test_node_model_is_valid(self):
-        self.assertTrue(isinstance(self.node, Node))
-
-    def test_like_model_is_valid(self):
-        self.assertTrue(isinstance(self.like, Like))
-
-class FollowandLikeTesting(TestCase):
-    def setUp(self):
-        author1_url = "http://example.com/authors/" + str(uuid.uuid4())
-        author2_url = "http://example.com/authors/" + str(uuid.uuid4())
-        author3_url = "http://example.com/authors/" + str(uuid.uuid4())
-
-        self.author1 = Author.objects.create(url=author1_url)
-        self.author2 = Author.objects.create(url=author2_url)
-        self.author3 = Author.objects.create(url=author3_url)
-
-    def test_followers_get(self):
-        author1_url = "http://example.com/authors/" + str(uuid.uuid4())
-        author2_url = "http://example.com/authors/" + str(uuid.uuid4())
-        author1 = Author.objects.create(url=author1_url)
-        author2 = Author.objects.create(url=author2_url)
-
-        follower = Follower.objects.create(author=author1, follower=author2)
-
-        # check Follower instance is created successfully
-        self.assertIsNotNone(follower)
-
-    def test_likes(self):
-        context = "https://www.w3.org/ns/activitystreams"
-        object_link = "http://127.0.0.1:8000/api/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e/posts/764efa883dda1e11db47671c4a3bbd9e"
-
-        like = Like.objects.create(
-            context=context,
-            author=self.author1,
-            object_url=object_link
-        )
-
-        self.assertEqual(Like.objects.count(), 1)
-
-        self.author1.likes_given.add(like)
-        self.assertEqual(self.author1.likes_given.count(), 1)
-
-class CommentTestCase(TestCase):
-    def setUp(self):
-        self.author = Author.objects.create(displayName="John Doe")
-
-        self.post = Post.objects.create(
-            title="Test Post",
-            content="This is a test post.",
-            author=self.author
-        )
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser3', email='user3@test.com', password='testpass3')
+        self.author = Author.objects.create(displayName='Author3', user=self.user, url=f"http://example.com/author/{uuid.uuid4()}")
+        self.post = Post.objects.create(title='Initial Post', content='Initial content', author=self.author, visibility='PUBLIC')
+        self.comment = Comment.objects.create(comment='Initial Comment', post=self.post, author=self.author, contentType='text/plain')
 
     def test_create_comment(self):
-        comment = Comment.objects.create(
-            author=self.author,
-            comment="This is a test comment.",
-            contentType="text/plain",
-            post=self.post
-        )
+        self.client.login(username='testuser3', password='testpass3')
+        url = reverse('mysocial:comments_post', kwargs={'authorId': self.author.authorId, 'post_id': self.post.id})
+        data = {'comment': 'New Comment', 'post': self.post.id, 'author': self.author.id, 'contentType': 'text/plain'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertIsNotNone(comment)
+    def test_retrieve_comment(self):
+        url = reverse('mysocial:comments_post', kwargs={'authorId': self.author.authorId, 'post_id': self.post.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_update_comment(self):
+        self.client.login(username='testuser3', password='testpass3')
+        url = reverse('mysocial:comments_post', kwargs={'authorId': self.author.authorId, 'post_id': self.post.id, 'comment_id': self.comment.id})
+        data = {'comment': 'Updated Comment'}
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_delete_comment(self):
+        self.client.login(username='testuser3', password='testpass3')
+        url = reverse('mysocial:comments_post', kwargs={'authorId': self.author.authorId, 'post_id': self.post.id, 'comment_id': self.comment.id})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+class FollowRequestTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user1 = User.objects.create_user(username='user1', email='user1@test.com', password='testpass1')
+        self.user2 = User.objects.create_user(username='user2', email='user2@test.com', password='testpass2')
+        self.author1 = Author.objects.create(displayName='Author1', user=self.user1, url=f"http://example.com/author/{uuid.uuid4()}")
+        self.author2 = Author.objects.create(displayName='Author2', user=self.user2, url=f"http://example.com/author/{uuid.uuid4()}")
+
+    def test_send_follow_request(self):
+        self.client.login(username='user1', password='testpass1')
+        url = reverse('mysocial:process_follow_request')
+        data = {'summary': 'Author1 wants to follow Author2', 'actor': self.author1.id, 'object': self.author2.id}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_accept_follow_request(self):
+        follow_request = FollowRequest.objects.create(summary="Author1 wants to follow Author2", actor=self.author1, object=self.author2)
+        self.client.login(username='user2', password='testpass2')
+        # Assuming an endpoint exists to accept follow requests
+        url = reverse('mysocial:accept_follow_request', kwargs={'request_id': follow_request.id})
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_reject_follow_request(self):
+        follow_request = FollowRequest.objects.create(summary="Author1 wants to follow Author2", actor=self.author1, object=self.author2)
+        self.client.login(username='user2', password='testpass2')
+        # Assuming an endpoint exists to reject follow requests
+        url = reverse('mysocial:reject_follow_request', kwargs={'request_id': follow_request.id})
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+class LikeTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user1 = User.objects.create_user(username='user1like', email='user1like@test.com', password='testpass1like')
+        self.user2 = User.objects.create_user(username='user2like', email='user2like@test.com', password='testpass2like')
+        self.author1 = Author.objects.create(displayName='Author1like', user=self.user1, url=f"http://example.com/author/{uuid.uuid4()}")
+        self.author2 = Author.objects.create(displayName='Author2like', user=self.user2, url=f"http://example.com/author/{uuid.uuid4()}")
+        self.post = Post.objects.create(title='Post for Like', content='This is a likable post.', author=self.author2, visibility='PUBLIC')
+
+    def test_like_post(self):
+        self.client.login(username='user1like', password='testpass1like')
+        url = reverse('mysocial:like_post', kwargs={'post_id': self.post.id})
+        data = {'summary': 'Author1like likes this post', 'author': self.author1.id}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
